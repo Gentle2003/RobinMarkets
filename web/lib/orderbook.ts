@@ -21,7 +21,15 @@ async function get<T>(path: string): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+export interface Stats {
+  markets: number;
+  volume24h: number;
+  trades24h: number;
+  updatedAt: number;
+}
+
 export const getConfig = () => get<OrderbookConfig>("/config");
+export const getStats = () => get<Stats>("/stats");
 export const getMarkets = () => get<Market[]>("/markets");
 export const getMarket = (id: string) => get<Market>(`/markets/${id}`);
 export const getBook = (tokenId: string) => get<OrderBookSnapshot>(`/book/${tokenId}`);

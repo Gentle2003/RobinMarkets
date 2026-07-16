@@ -5,10 +5,10 @@ import { motion } from "framer-motion";
 import { useMarkets } from "@/lib/hooks";
 import { MarketCard } from "@/components/MarketCard";
 import { SectorTabs, type SectorFilter } from "@/components/SectorTabs";
-import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { Ticker } from "@/components/Ticker";
 import { ActivityFeed } from "@/components/ActivityFeed";
-import { fakeVolume, formatVolume, subCategory, SUBCATEGORIES } from "@/lib/derived";
+import { Hero } from "@/components/Hero";
+import { subCategory, SUBCATEGORIES } from "@/lib/derived";
 
 export default function HomePage() {
   const { data: markets, isLoading, isError } = useMarkets();
@@ -30,11 +30,6 @@ export default function HomePage() {
     );
   }, [markets, sector, subCat, query]);
 
-  const totalVolume = useMemo(
-    () => (markets ?? []).reduce((sum, m) => sum + fakeVolume(m.id), 0),
-    [markets]
-  );
-
   function pickSector(s: SectorFilter) {
     setSector(s);
     setSubCat("All");
@@ -42,38 +37,7 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <section className="flex flex-col gap-4 pt-4">
-        <motion.h1
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-3xl font-bold tracking-tight sm:text-4xl"
-        >
-          Predict{" "}
-          <span className="animate-gradient bg-gradient-to-r from-lime via-yes to-lime bg-clip-text text-transparent">
-            Stocks
-          </span>{" "}
-          &amp;{" "}
-          <span className="animate-gradient bg-gradient-to-r from-lime via-yes to-lime bg-clip-text text-transparent">
-            Real-World Assets
-          </span>
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.15, duration: 0.5 }}
-          className="max-w-2xl text-sm text-muted"
-        >
-          Trade binary outcomes on tokenized equities and RWAs. Orders are signed off-chain and
-          settle on Robinhood Chain.
-        </motion.p>
-
-        <div className="grid grid-cols-3 gap-3 sm:max-w-md">
-          <Stat label="Markets" value={markets?.length ?? 0} format={(n) => n.toFixed(0)} />
-          <Stat label="24h Volume" value={totalVolume} format={(n) => formatVolume(n)} />
-          <Stat label="Sectors" value={2} format={(n) => n.toFixed(0)} />
-        </div>
-      </section>
+      <Hero />
 
       <Ticker />
 
@@ -124,7 +88,8 @@ export default function HomePage() {
       )}
 
       <motion.div
-        className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        id="markets"
+        className="grid grid-cols-1 gap-4 scroll-mt-20 sm:grid-cols-2 lg:grid-cols-3"
         initial="hidden"
         animate="show"
         variants={{ show: { transition: { staggerChildren: 0.05 } } }}
@@ -142,27 +107,10 @@ export default function HomePage() {
         ))}
       </motion.div>
 
-      <section className="flex flex-col gap-3">
+      <section id="activity" className="flex scroll-mt-20 flex-col gap-3">
         <h2 className="text-sm font-semibold text-muted">Live market activity</h2>
         <ActivityFeed showMarket />
       </section>
-    </div>
-  );
-}
-
-function Stat({
-  label,
-  value,
-  format,
-}: {
-  label: string;
-  value: number;
-  format: (n: number) => string;
-}) {
-  return (
-    <div className="card px-4 py-3">
-      <AnimatedNumber value={value} format={format} className="text-xl font-bold tabular text-white" />
-      <div className="text-[11px] uppercase tracking-wide text-muted">{label}</div>
     </div>
   );
 }

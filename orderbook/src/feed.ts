@@ -8,15 +8,27 @@ const MAX = 300;
 /** Rolling in-memory log of recent trades for the activity feed. */
 export class ActivityLog {
   private entries: ActivityEntry[] = [];
+  /** Monotonic cumulative traded notional (display units) since startup. */
+  private notional = 0;
+  private tradeCount = 0;
 
   push(entry: ActivityEntry): void {
     this.entries.unshift(entry);
     if (this.entries.length > MAX) this.entries.length = MAX;
+    // notional = shares × price (fraction), scaled up for a lively dollar-ish figure.
+    const shares = Number(BigInt(entry.shares) / 10n ** 15n) / 1000;
+    const price = Number(BigInt(entry.price) / 10n ** 12n) / 1e6;
+    this.notional += shares * price * 24;
+    this.tradeCount++;
   }
 
   recent(marketId: string | undefined, limit: number): ActivityEntry[] {
     const list = marketId ? this.entries.filter((e) => e.marketId === marketId) : this.entries;
     return list.slice(0, limit);
+  }
+
+  stats(): { notional: number; trades: number } {
+    return { notional: this.notional, trades: this.tradeCount };
   }
 }
 

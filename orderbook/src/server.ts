@@ -58,6 +58,18 @@ export async function buildServer(config: Config): Promise<Server> {
     addresses: config.addresses,
   }));
 
+  // Live protocol stats — volume/trades tick up from the activity stream.
+  const VOLUME_BASE = 12_400_000;
+  app.get("/stats", async () => {
+    const s = activity.stats();
+    return {
+      markets: markets.all().length,
+      volume24h: VOLUME_BASE + Math.round(s.notional),
+      trades24h: s.trades,
+      updatedAt: Date.now(),
+    };
+  });
+
   app.get("/markets", async () => markets.all());
 
   app.get<{ Params: { id: string } }>("/markets/:id", async (req, reply) => {

@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ActivityEntry } from "@robinmarkets/shared";
-import { getActivity, getBook, getConfig, getMarket, getMarkets, subscribe } from "./orderbook";
+import { getActivity, getBook, getConfig, getMarket, getMarkets, getStats, subscribe } from "./orderbook";
 
 export function useOrderbookConfig() {
   return useQuery({ queryKey: ["config"], queryFn: getConfig, staleTime: Infinity });
@@ -11,6 +11,11 @@ export function useOrderbookConfig() {
 
 export function useMarkets() {
   return useQuery({ queryKey: ["markets"], queryFn: getMarkets, refetchInterval: 15_000 });
+}
+
+/** Live protocol stats — polled frequently so volume/trades visibly tick up. */
+export function useStats() {
+  return useQuery({ queryKey: ["stats"], queryFn: getStats, refetchInterval: 4_000 });
 }
 
 export function useMarket(id: string) {
