@@ -93,6 +93,8 @@ export interface BookOrder {
   totalShares: bigint;
   remainingShares: bigint;
   createdAt: number;
+  /** Display-only demo liquidity — shown in snapshots but never matched/settled. */
+  synthetic?: boolean;
 }
 
 export function toBookOrder(o: SignedOrder, hash: Hex): BookOrder {

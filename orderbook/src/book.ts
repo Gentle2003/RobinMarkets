@@ -100,7 +100,7 @@ export class OrderBook {
     if (taker.side === "BUY") {
       // NORMAL: cheapest ask that we can lift.
       const ask = own.sells
-        .filter((o) => o.remainingShares > 0n && o.price <= taker.price)
+        .filter((o) => !o.synthetic && o.remainingShares > 0n && o.price <= taker.price)
         .sort((a, b) => cmp(a.price, b.price) || a.createdAt - b.createdAt)[0];
       if (ask) return { maker: ask, matchType: "NORMAL" };
 
@@ -108,14 +108,14 @@ export class OrderBook {
       if (info) {
         const comp = this.level(info.complement);
         const bid = comp.buys
-          .filter((o) => o.remainingShares > 0n && o.price + taker.price >= PRICE_SCALE)
+          .filter((o) => !o.synthetic && o.remainingShares > 0n && o.price + taker.price >= PRICE_SCALE)
           .sort((a, b) => cmp(b.price, a.price) || a.createdAt - b.createdAt)[0];
         if (bid) return { maker: bid, matchType: "MINT" };
       }
     } else {
       // NORMAL: highest bid that meets our ask.
       const bid = own.buys
-        .filter((o) => o.remainingShares > 0n && o.price >= taker.price)
+        .filter((o) => !o.synthetic && o.remainingShares > 0n && o.price >= taker.price)
         .sort((a, b) => cmp(b.price, a.price) || a.createdAt - b.createdAt)[0];
       if (bid) return { maker: bid, matchType: "NORMAL" };
 
@@ -123,7 +123,7 @@ export class OrderBook {
       if (info) {
         const comp = this.level(info.complement);
         const ask = comp.sells
-          .filter((o) => o.remainingShares > 0n && o.price + taker.price <= PRICE_SCALE)
+          .filter((o) => !o.synthetic && o.remainingShares > 0n && o.price + taker.price <= PRICE_SCALE)
           .sort((a, b) => cmp(a.price, b.price) || a.createdAt - b.createdAt)[0];
         if (ask) return { maker: ask, matchType: "MERGE" };
       }
@@ -135,6 +135,25 @@ export class OrderBook {
     const l = this.level(o.tokenId.toString());
     (o.side === "BUY" ? l.buys : l.sells).push(o);
     this.byHash.set(o.hash, o);
+  }
+
+  /** Inject display-only liquidity (demo). Never matched or settled on-chain. */
+  addSynthetic(tokenId: string, side: "BUY" | "SELL", price: bigint, shares: bigint): void {
+    const hash = ("0xsynthetic" + Math.random().toString(16).slice(2)) as `0x${string}`;
+    const o: BookOrder = {
+      order: {} as any,
+      hash,
+      tokenId: BigInt(tokenId),
+      side,
+      price,
+      totalShares: shares,
+      remainingShares: shares,
+      createdAt: Date.now(),
+      synthetic: true,
+    };
+    const l = this.level(tokenId);
+    (side === "BUY" ? l.buys : l.sells).push(o);
+    this.byHash.set(hash, o);
   }
 
   remove(hash: string): boolean {

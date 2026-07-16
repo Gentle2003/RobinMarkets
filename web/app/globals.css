@@ -13,18 +13,35 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Ambient lime glow anchored top-center, like Polymarket/Kalshi hero washes. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 40% at 50% -8%, rgba(195, 245, 60, 0.1), transparent 70%),
+    radial-gradient(40% 30% at 90% 10%, rgba(0, 209, 121, 0.06), transparent 70%);
+}
+
+body > * {
+  position: relative;
+  z-index: 1;
+}
+
 @layer components {
   .card {
     @apply bg-surface border border-border rounded-2xl;
   }
   .btn {
-    @apply inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed;
   }
   .btn-lime {
-    @apply btn bg-lime text-black hover:bg-lime-bright;
+    @apply btn bg-lime text-black hover:bg-lime-bright hover:shadow-[0_0_24px_-4px_rgba(195,245,60,0.6)];
   }
   .btn-ghost {
-    @apply btn border border-border text-white hover:bg-surface-2;
+    @apply btn border border-border text-white hover:bg-surface-2 hover:border-lime-dim;
   }
   .pill {
     @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium;
@@ -32,9 +49,47 @@ body {
   .tabular {
     font-variant-numeric: tabular-nums;
   }
+  .glow-hover {
+    @apply transition-all duration-300;
+  }
+  .glow-hover:hover {
+    box-shadow: 0 0 0 1px rgba(195, 245, 60, 0.35), 0 12px 40px -12px rgba(195, 245, 60, 0.25);
+  }
 }
 
-/* Thin, unobtrusive scrollbars to match the dark UI. */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.04), transparent);
+  animation: shimmer 1.6s infinite;
+}
+
+/* Slow pan for the animated hero gradient text/underline. */
+@keyframes gradient-pan {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-pan 6s ease infinite;
+}
+
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -42,4 +97,7 @@ body {
 ::-webkit-scrollbar-thumb {
   background: #282c33;
   border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3a3f47;
 }

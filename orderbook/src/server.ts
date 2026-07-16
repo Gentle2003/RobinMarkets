@@ -8,6 +8,7 @@ import { OrderBook } from "./book.js";
 import { Hub } from "./hub.js";
 import { createSettleFn } from "./settlement.js";
 import { orderHash, orderPrice, toBookOrder, verifyOrderSignature } from "./order.js";
+import { seedSyntheticBook } from "./seed.js";
 
 const REQUIRED_FIELDS: (keyof SignedOrder)[] = [
   "salt", "maker", "signer", "tokenId", "makerAmount", "takerAmount", "expiry", "nonce", "side", "signature",
@@ -29,6 +30,11 @@ export async function buildServer(config: Config): Promise<Server> {
   const book = new OrderBook(markets);
   const hub = new Hub();
   const settle = createSettleFn(config);
+
+  // Demo liquidity so markets show varied prices/depth (disable with SEED_BOOK=false).
+  if (process.env.SEED_BOOK !== "false") {
+    seedSyntheticBook(book, markets.all());
+  }
 
   function publishBook(tokenId: string) {
     hub.broadcast({ type: "book", snapshot: serialize(book.snapshot(tokenId)) });
