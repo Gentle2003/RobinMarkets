@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useMarkets, useStats } from "@/lib/hooks";
 import { AnimatedNumber } from "./AnimatedNumber";
 import { formatVolume } from "@/lib/derived";
+import { smoothScrollToId } from "@/lib/scroll";
 
 function LiveDot() {
   return (
@@ -70,14 +71,14 @@ export function Hero() {
         transition={{ duration: 0.5 }}
         className="max-w-3xl text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl"
       >
-        Trade the future of{" "}
         <span className="animate-gradient bg-gradient-to-r from-lime via-yes to-lime bg-clip-text text-transparent">
+          Predict
+        </span>{" "}
+        the future of{" "}
+        <span className="animate-gradient bg-gradient-to-r from-yes via-lime to-yes bg-clip-text text-transparent">
           Stocks
         </span>{" "}
-        &amp;{" "}
-        <span className="animate-gradient bg-gradient-to-r from-yes via-lime to-yes bg-clip-text text-transparent">
-          Real-World Assets
-        </span>
+        &amp; <span className="whitespace-nowrap">Real-World Assets</span>
       </motion.h1>
 
       <motion.p
@@ -91,10 +92,24 @@ export function Hero() {
       </motion.p>
 
       <div className="mt-6 flex flex-wrap gap-3">
-        <a href="#markets" className="btn-lime">
+        <a
+          href="#markets"
+          onClick={(e) => {
+            e.preventDefault();
+            smoothScrollToId("markets");
+          }}
+          className="btn-lime"
+        >
           Explore markets →
         </a>
-        <a href="#activity" className="btn-ghost">
+        <a
+          href="#activity"
+          onClick={(e) => {
+            e.preventDefault();
+            smoothScrollToId("activity");
+          }}
+          className="btn-ghost"
+        >
           View live activity
         </a>
       </div>
