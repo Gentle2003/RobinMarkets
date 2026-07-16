@@ -1,0 +1,41 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# builds
+dist/
+build/
+.next/
+out/
+
+# foundry
+contracts/out/
+contracts/cache/
+contracts/broadcast/**/dry-run/
+contracts/broadcast/**/31337/
+contracts/deployments/31337.json
+contracts/lib/
+
+# env / secrets
+.env
+.env.local
+.env.*.local
+*.key
+deployer.key
+
+# db
+*.sqlite
+*.sqlite3
+orderbook/data/
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# os / editor
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json

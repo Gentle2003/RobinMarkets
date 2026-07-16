@@ -1,0 +1,19 @@
+{
+  "name": "robinmarkets",
+  "version": "0.0.1",
+  "private": true,
+  "description": "RobinMarkets — a CLOB prediction market for Stocks & RWA outcomes on Robinhood Chain",
+  "packageManager": "pnpm@11.13.1",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "chain": "cd contracts && anvil",
+    "contracts:build": "cd contracts && forge build",
+    "contracts:test": "cd contracts && forge test",
+    "dev:web": "pnpm --filter @robinmarkets/web dev",
+    "dev:orderbook": "pnpm --filter @robinmarkets/orderbook dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck"
+  }
+}
