@@ -31,6 +31,72 @@ function hash(seed: string, salt: number): number {
   return (h >>> 0) / 0xffffffff;
 }
 
+// ── Sub-categories ──────────────────────────────────────────────────────────
+
+const SUBCATEGORY: Record<string, string> = {
+  AAPL: "Tech",
+  NVDA: "Tech",
+  GOOGL: "Tech",
+  MSFT: "Tech",
+  META: "Tech",
+  TSLA: "Consumer",
+  AMZN: "Consumer",
+  COIN: "Finance",
+  SPY: "Index",
+  GOLD: "Metals",
+  SILVER: "Metals",
+  "US-TBILL": "Rates",
+  WTI: "Energy",
+  REIT: "Real Estate",
+  HOUSING: "Real Estate",
+};
+
+export const SUBCATEGORIES: Record<"STOCKS" | "RWA", string[]> = {
+  STOCKS: ["Tech", "Consumer", "Finance", "Index"],
+  RWA: ["Metals", "Rates", "Energy", "Real Estate"],
+};
+
+export function subCategory(underlying: string): string {
+  return SUBCATEGORY[underlying] ?? "Other";
+}
+
+// ── Ticker prices (display-only) ────────────────────────────────────────────
+
+const BASE_PRICE: Record<string, number> = {
+  AAPL: 241.3,
+  NVDA: 182.5,
+  TSLA: 355.2,
+  GOOGL: 205.1,
+  MSFT: 498.4,
+  AMZN: 238.9,
+  META: 742.1,
+  COIN: 312.6,
+  SPY: 662.3,
+  GOLD: 2870.0,
+  SILVER: 36.2,
+  "US-TBILL": 4.3,
+  WTI: 72.4,
+  REIT: 104.2,
+  HOUSING: 322.1,
+};
+
+export interface TickerItem {
+  symbol: string;
+  price: number;
+  changePct: number;
+  isRate: boolean;
+}
+
+/** Deterministic ticker rows for the scrolling price tape. */
+export function tickerItems(): TickerItem[] {
+  return Object.entries(BASE_PRICE).map(([symbol, price]) => ({
+    symbol,
+    price,
+    changePct: Math.round((hash(symbol, 5) - 0.45) * 120) / 10,
+    isRate: symbol === "US-TBILL",
+  }));
+}
+
 /** Pseudo 24h volume in whole dollars, ~$8k–$2.4M. */
 export function fakeVolume(id: string): number {
   const v = hash(id, 3);

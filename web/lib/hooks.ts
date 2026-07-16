@@ -1,7 +1,9 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { getBook, getConfig, getMarket, getMarkets } from "./orderbook";
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import type { ActivityEntry } from "@robinmarkets/shared";
+import { getActivity, getBook, getConfig, getMarket, getMarkets, subscribe } from "./orderbook";
 
 export function useOrderbookConfig() {
   return useQuery({ queryKey: ["config"], queryFn: getConfig, staleTime: Infinity });
@@ -22,4 +24,27 @@ export function useBook(tokenId: string | undefined) {
     enabled: !!tokenId,
     refetchInterval: 4_000,
   });
+}
+
+/** Recent trades, seeded from REST and kept live via the order book's WS feed. */
+export function useActivity(marketId?: string, limit = 40) {
+  const qc = useQueryClient();
+  const query = useQuery({
+    queryKey: ["activity", marketId ?? "all"],
+    queryFn: () => getActivity(marketId, limit),
+    refetchInterval: 20_000,
+  });
+
+  useEffect(() => {
+    return subscribe((msg) => {
+      if (msg?.type !== "activity" || !msg.entry) return;
+      const entry = msg.entry as ActivityEntry;
+      if (marketId && entry.marketId !== marketId) return;
+      qc.setQueryData<ActivityEntry[]>(["activity", marketId ?? "all"], (prev) =>
+        [entry, ...(prev ?? [])].slice(0, limit)
+      );
+    });
+  }, [qc, marketId, limit]);
+
+  return query;
 }

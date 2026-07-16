@@ -78,6 +78,24 @@ export interface OrderBookSnapshot {
   updatedAt: number;
 }
 
+/** A recent trade shown in the market activity feed (Polymarket-style). */
+export interface ActivityEntry {
+  id: string;
+  marketId: string;
+  underlying: string;
+  outcome: Outcome;
+  side: Side;
+  /** execution price in collateral wei per share (1e18 == 1.0) */
+  price: string;
+  /** shares traded (18-decimal wei) */
+  shares: string;
+  /** short trader label, e.g. "0x1234…abcd" */
+  trader: string;
+  /** true for demo-generated activity */
+  synthetic?: boolean;
+  timestamp: number;
+}
+
 export const SECTORS: readonly MarketSector[] = ["STOCKS", "RWA"] as const;
 
 /** Collateral is WETH (wrapped Robinhood ETH) — the CTF requires an ERC-20. */

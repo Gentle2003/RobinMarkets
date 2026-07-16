@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { Market, OrderBookSnapshot, SignedOrder } from "@robinmarkets/shared";
+import type { ActivityEntry, Market, OrderBookSnapshot, SignedOrder } from "@robinmarkets/shared";
 
 export const ORDERBOOK_URL =
   process.env.NEXT_PUBLIC_ORDERBOOK_URL ?? "http://localhost:4000";
@@ -25,6 +25,8 @@ export const getConfig = () => get<OrderbookConfig>("/config");
 export const getMarkets = () => get<Market[]>("/markets");
 export const getMarket = (id: string) => get<Market>(`/markets/${id}`);
 export const getBook = (tokenId: string) => get<OrderBookSnapshot>(`/book/${tokenId}`);
+export const getActivity = (marketId?: string, limit = 40) =>
+  get<ActivityEntry[]>(`/activity?limit=${limit}${marketId ? `&marketId=${marketId}` : ""}`);
 
 export interface PostOrderResult {
   hash: string;

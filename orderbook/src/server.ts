@@ -6,9 +6,11 @@ import type { Config } from "./config.js";
 import { MarketsRegistry } from "./markets.js";
 import { OrderBook } from "./book.js";
 import { Hub } from "./hub.js";
+import { Outcome } from "@robinmarkets/shared";
 import { createSettleFn } from "./settlement.js";
 import { orderHash, orderPrice, toBookOrder, verifyOrderSignature } from "./order.js";
 import { seedSyntheticBook } from "./seed.js";
+import { ActivityLog, startSyntheticActivity } from "./feed.js";
 
 const REQUIRED_FIELDS: (keyof SignedOrder)[] = [
   "salt", "maker", "signer", "tokenId", "makerAmount", "takerAmount", "expiry", "nonce", "side", "signature",
@@ -31,9 +33,12 @@ export async function buildServer(config: Config): Promise<Server> {
   const hub = new Hub();
   const settle = createSettleFn(config);
 
-  // Demo liquidity so markets show varied prices/depth (disable with SEED_BOOK=false).
+  const activity = new ActivityLog();
+
+  // Demo liquidity + live activity so the UI feels alive (disable with SEED_BOOK=false).
   if (process.env.SEED_BOOK !== "false") {
     seedSyntheticBook(book, markets.all());
+    startSyntheticActivity(activity, markets, hub);
   }
 
   function publishBook(tokenId: string) {
@@ -71,6 +76,11 @@ export async function buildServer(config: Config): Promise<Server> {
       return reply.code(404).send({ error: "unknown token" });
     }
     return serialize(book.snapshot(req.params.tokenId));
+  });
+
+  app.get<{ Querystring: { marketId?: string; limit?: string } }>("/activity", async (req) => {
+    const limit = Math.min(Number(req.query.limit ?? 40), 100);
+    return activity.recent(req.query.marketId, limit);
   });
 
   app.post<{ Body: SignedOrder }>("/orders", async (req, reply) => {
@@ -113,6 +123,26 @@ export async function buildServer(config: Config): Promise<Server> {
 
     const taker = toBookOrder(o, hash);
     const trades = await book.submit(taker, settle);
+
+    // Record real fills into the activity feed.
+    for (const t of trades) {
+      const info = markets.token(t.tokenId);
+      const mkt = info && markets.get(info.marketId);
+      if (!info || !mkt) continue;
+      const entry = {
+        id: `${Date.now()}-${t.maker.slice(2, 8)}`,
+        marketId: info.marketId,
+        underlying: mkt.underlying,
+        outcome: info.isYes ? Outcome.YES : Outcome.NO,
+        side: o.side,
+        price: t.price,
+        shares: t.fillShares,
+        trader: `${o.maker.slice(0, 6)}…${o.maker.slice(-4)}`,
+        timestamp: t.timestamp,
+      };
+      activity.push(entry);
+      hub.broadcast({ type: "activity", entry });
+    }
 
     if (trades.length) hub.broadcast({ type: "trades", trades });
     publishBook(o.tokenId);

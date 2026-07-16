@@ -11,6 +11,7 @@ import { assetEmoji, fakeChange, fakeVolume, formatVolume, sparkline } from "@/l
 import { ProbabilityBar } from "@/components/ProbabilityBar";
 import { OrderBook } from "@/components/OrderBook";
 import { TradePanel } from "@/components/TradePanel";
+import { ActivityFeed } from "@/components/ActivityFeed";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { Sparkline } from "@/components/Sparkline";
 
@@ -99,6 +100,8 @@ export default function MarketPage({ params }: { params: Promise<{ id: string }>
         >
           <h2 className="text-sm font-semibold text-muted">Order book · Yes</h2>
           <OrderBook snapshot={yesBook} />
+          <h2 className="mt-3 text-sm font-semibold text-muted">Activity</h2>
+          <ActivityFeed marketId={market.id} />
         </motion.div>
         <motion.div
           initial={{ opacity: 0, y: 12 }}

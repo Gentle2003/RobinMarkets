@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { LogoBadge } from "./Logo";
 
 export function Header() {
   const pathname = usePathname();
@@ -16,9 +17,7 @@ export function Header() {
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-lime text-black font-black">
-              R
-            </span>
+            <LogoBadge className="h-8 w-8" />
             <span className="text-lg font-bold tracking-tight">
               Robin<span className="text-lime">Markets</span>
             </span>

@@ -7,7 +7,7 @@ import { PRICE_SCALE } from "@robinmarkets/shared";
 import { useBook } from "@/lib/hooks";
 import { midPrice } from "@/lib/price";
 import { priceToPct, sectorLabel, timeUntil } from "@/lib/format";
-import { assetEmoji, fakeChange, fakeVolume, formatVolume, sparkline } from "@/lib/derived";
+import { assetEmoji, fakeChange, fakeVolume, formatVolume, sparkline, subCategory } from "@/lib/derived";
 import { AnimatedNumber } from "./AnimatedNumber";
 import { Sparkline } from "./Sparkline";
 
@@ -44,7 +44,9 @@ export function MarketCard({ market }: { market: Market }) {
                   {up ? "▲" : "▼"} {Math.abs(change).toFixed(1)}%
                 </span>
               </div>
-              <div className="text-xs text-muted">{sectorLabel(market.sector)}</div>
+              <div className="text-xs text-muted">
+                {sectorLabel(market.sector)} · {subCategory(market.underlying)}
+              </div>
             </div>
           </div>
           <span className="pill bg-surface-2 text-muted">{timeUntil(market.closeTime)}</span>
