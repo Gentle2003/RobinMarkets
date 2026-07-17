@@ -4,8 +4,8 @@ Two services, two hosts:
 
 | Service | Host | Domain |
 | --- | --- | --- |
-| Web app (Next.js) | **Vercel** | `yourdomain.com` |
-| Order book (Fastify + WS + settlement operator) | **Railway** | `api.yourdomain.com` |
+| Web app (Next.js) | **Vercel** | `robinmarkets.app` |
+| Order book (Fastify + WS + settlement operator) | **Railway** | `api.robinmarkets.app` |
 
 Contracts are already live on **Robinhood Chain testnet (46630)** — see `contracts/deployments/46630.json`.
 
@@ -37,7 +37,7 @@ Contracts are already live on **Robinhood Chain testnet (46630)** — see `contr
 3. **Settings → Networking → Generate Domain**. Note the URL, e.g.
    `https://robinmarkets-orderbook-production.up.railway.app`.
    Verify: opening `<that-url>/health` returns `{"ok":true,"chainId":46630,...}`.
-4. *(Optional)* **Custom Domain → `api.yourdomain.com`** → add the CNAME Railway shows.
+4. *(Optional)* **Custom Domain → `api.robinmarkets.app`** → add the CNAME Railway shows.
 
 ---
 
@@ -50,11 +50,11 @@ Contracts are already live on **Robinhood Chain testnet (46630)** — see `contr
 
    | Key | Value |
    | --- | --- |
-   | `NEXT_PUBLIC_ORDERBOOK_URL` | the Railway URL from A3 (or `https://api.yourdomain.com`) |
+   | `NEXT_PUBLIC_ORDERBOOK_URL` | the Railway URL from A3 (or `https://api.robinmarkets.app`) |
    | `NEXT_PUBLIC_CHAIN_ID` | `46630` |
    | `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | a project id from https://cloud.reown.com (free; needed for wallet connect) |
 
-4. **Deploy.** Then **Settings → Domains → add `yourdomain.com`** (and `www`).
+4. **Deploy.** Then **Settings → Domains → add `robinmarkets.app`** (and `www`).
 
 ---
 
@@ -68,15 +68,15 @@ Vercel and Railway each show the exact records; typically:
 | Web www | `CNAME` | `www` | `cname.vercel-dns.com` |
 | Order book | `CNAME` | `api` | *(the target Railway shows)* |
 
-If you use `api.yourdomain.com`, set `NEXT_PUBLIC_ORDERBOOK_URL=https://api.yourdomain.com`
+If you use `api.robinmarkets.app`, set `NEXT_PUBLIC_ORDERBOOK_URL=https://api.robinmarkets.app`
 in Vercel and redeploy.
 
 ---
 
 ## Part D — Verify
 
-- `https://api.yourdomain.com/health` → `{"ok":true,"chainId":46630,"markets":15}`
-- `https://yourdomain.com` loads; footer shows **Robinhood Chain Testnet** addresses
+- `https://api.robinmarkets.app/health` → `{"ok":true,"chainId":46630,"markets":15}`
+- `https://robinmarkets.app` loads; footer shows **Robinhood Chain Testnet** addresses
   linking to the testnet explorer; live stats tick; connecting a wallet on chain
   `46630` lets you trade.
 
