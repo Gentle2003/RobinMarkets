@@ -80,6 +80,42 @@ const BASE_PRICE: Record<string, number> = {
   HOUSING: 322.1,
 };
 
+// ── Simulated holders (until an indexer exists) ─────────────────────────────
+
+export interface SimHolder {
+  trader: string;
+  outcome: "YES" | "NO";
+  shares: number;
+}
+
+function fakeAddr(seed: string, i: number): string {
+  const h1 = Math.floor(hash(seed, i * 2 + 1) * 0xffff)
+    .toString(16)
+    .padStart(4, "0");
+  const h2 = Math.floor(hash(seed, i * 2 + 2) * 0xffff)
+    .toString(16)
+    .padStart(4, "0");
+  return `0x${h1}…${h2}`;
+}
+
+/** Deterministic, display-only top-holders leaderboard for a market. */
+export function simulatedHolders(marketId: string, perSide = 4): SimHolder[] {
+  const out: SimHolder[] = [];
+  for (let i = 0; i < perSide; i++) {
+    out.push({
+      trader: fakeAddr(marketId + "y", i),
+      outcome: "YES",
+      shares: Math.floor(500 + hash(marketId + "y", i) * hash(marketId + "y2", i) * 60000),
+    });
+    out.push({
+      trader: fakeAddr(marketId + "n", i),
+      outcome: "NO",
+      shares: Math.floor(500 + hash(marketId + "n", i) * hash(marketId + "n2", i) * 60000),
+    });
+  }
+  return out.sort((a, b) => b.shares - a.shares);
+}
+
 export interface TickerItem {
   symbol: string;
   price: number;

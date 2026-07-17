@@ -11,6 +11,7 @@ import { createSettleFn } from "./settlement.js";
 import { orderHash, orderPrice, toBookOrder, verifyOrderSignature } from "./order.js";
 import { seedSyntheticBook } from "./seed.js";
 import { ActivityLog, startSyntheticActivity } from "./feed.js";
+import { CommentStore } from "./social.js";
 
 const REQUIRED_FIELDS: (keyof SignedOrder)[] = [
   "salt", "maker", "signer", "tokenId", "makerAmount", "takerAmount", "expiry", "nonce", "side", "signature",
@@ -94,6 +95,30 @@ export async function buildServer(config: Config): Promise<Server> {
     const limit = Math.min(Number(req.query.limit ?? 40), 100);
     return activity.recent(req.query.marketId, limit);
   });
+
+  const comments = new CommentStore();
+
+  app.get<{ Querystring: { marketId?: string } }>("/comments", async (req, reply) => {
+    if (!req.query.marketId) return reply.code(400).send({ error: "marketId required" });
+    return comments.recent(req.query.marketId);
+  });
+
+  app.post<{ Body: { marketId?: string; author?: string; text?: string } }>(
+    "/comments",
+    async (req, reply) => {
+      const { marketId, author, text } = req.body ?? {};
+      if (!marketId || !markets.get(marketId)) return reply.code(404).send({ error: "unknown market" });
+      if (!author || !/^0x[a-fA-F0-9]{40}$/.test(author)) {
+        return reply.code(400).send({ error: "valid author address required" });
+      }
+      const clean = (text ?? "").trim();
+      if (!clean) return reply.code(400).send({ error: "empty comment" });
+
+      const comment = comments.add(marketId, author, clean);
+      hub.broadcast({ type: "comment", comment });
+      return comment;
+    }
+  );
 
   app.post<{ Body: SignedOrder }>("/orders", async (req, reply) => {
     const o = req.body;

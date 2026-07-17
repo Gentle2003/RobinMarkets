@@ -67,14 +67,16 @@ export function loadConfig(): Config {
   if (!chain) throw new Error(`Unsupported CHAIN_ID: ${chainId}`);
 
   const rpcUrl = process.env.RPC_URL ?? chain.rpcUrls.default.http[0];
-  const publicClient = createPublicClient({ chain, transport: http(rpcUrl) }) as PublicClient;
+  // Public RPCs are rate-limited and occasionally slow; be patient and retry.
+  const transport = http(rpcUrl, { timeout: 30_000, retryCount: 6, retryDelay: 1_200 });
+  const publicClient = createPublicClient({ chain, transport }) as PublicClient;
 
   let walletClient: WalletClient | undefined;
   let operator: Account | undefined;
   const opKey = process.env.OPERATOR_PRIVATE_KEY;
   if (opKey && opKey.length > 3) {
     operator = privateKeyToAccount(opKey as `0x${string}`);
-    walletClient = createWalletClient({ account: operator, chain, transport: http(rpcUrl) });
+    walletClient = createWalletClient({ account: operator, chain, transport });
   }
 
   return {

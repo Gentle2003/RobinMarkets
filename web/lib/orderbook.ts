@@ -1,5 +1,11 @@
 import type { Address } from "viem";
-import type { ActivityEntry, Market, OrderBookSnapshot, SignedOrder } from "@robinmarkets/shared";
+import type {
+  ActivityEntry,
+  Comment,
+  Market,
+  OrderBookSnapshot,
+  SignedOrder,
+} from "@robinmarkets/shared";
 
 export const ORDERBOOK_URL =
   process.env.NEXT_PUBLIC_ORDERBOOK_URL ?? "http://localhost:4000";
@@ -35,6 +41,19 @@ export const getMarket = (id: string) => get<Market>(`/markets/${id}`);
 export const getBook = (tokenId: string) => get<OrderBookSnapshot>(`/book/${tokenId}`);
 export const getActivity = (marketId?: string, limit = 40) =>
   get<ActivityEntry[]>(`/activity?limit=${limit}${marketId ? `&marketId=${marketId}` : ""}`);
+
+export const getComments = (marketId: string) =>
+  get<Comment[]>(`/comments?marketId=${marketId}`);
+
+export async function postComment(input: { marketId: string; author: string; text: string }) {
+  const res = await fetch(`${ORDERBOOK_URL}/comments`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? "comment failed");
+  return res.json() as Promise<Comment>;
+}
 
 export interface PostOrderResult {
   hash: string;

@@ -2,8 +2,17 @@
 
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import type { ActivityEntry } from "@robinmarkets/shared";
-import { getActivity, getBook, getConfig, getMarket, getMarkets, getStats, subscribe } from "./orderbook";
+import type { ActivityEntry, Comment } from "@robinmarkets/shared";
+import {
+  getActivity,
+  getBook,
+  getComments,
+  getConfig,
+  getMarket,
+  getMarkets,
+  getStats,
+  subscribe,
+} from "./orderbook";
 
 export function useOrderbookConfig() {
   return useQuery({ queryKey: ["config"], queryFn: getConfig, staleTime: Infinity });
@@ -29,6 +38,28 @@ export function useBook(tokenId: string | undefined) {
     enabled: !!tokenId,
     refetchInterval: 4_000,
   });
+}
+
+/** Market comments, seeded from REST and kept live via the order book's WS feed. */
+export function useComments(marketId: string | undefined) {
+  const qc = useQueryClient();
+  const query = useQuery({
+    queryKey: ["comments", marketId],
+    queryFn: () => getComments(marketId!),
+    enabled: !!marketId,
+  });
+
+  useEffect(() => {
+    if (!marketId) return;
+    return subscribe((msg) => {
+      if (msg?.type !== "comment" || !msg.comment) return;
+      const c = msg.comment as Comment;
+      if (c.marketId !== marketId) return;
+      qc.setQueryData<Comment[]>(["comments", marketId], (prev) => [c, ...(prev ?? [])]);
+    });
+  }, [qc, marketId]);
+
+  return query;
 }
 
 /** Recent trades, seeded from REST and kept live via the order book's WS feed. */

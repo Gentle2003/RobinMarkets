@@ -11,6 +11,7 @@ import { assetEmoji, fakeChange, fakeVolume, formatVolume, sparkline } from "@/l
 import { ProbabilityBar } from "@/components/ProbabilityBar";
 import { OrderBook } from "@/components/OrderBook";
 import { TradePanel } from "@/components/TradePanel";
+import { MarketTabs } from "@/components/market/MarketTabs";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { Sparkline } from "@/components/Sparkline";
@@ -113,6 +114,8 @@ export default function MarketPage({ params }: { params: Promise<{ id: string }>
           <TradePanel market={market} />
         </motion.div>
       </div>
+
+      <MarketTabs market={market} />
     </div>
   );
 }

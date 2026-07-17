@@ -96,6 +96,26 @@ export interface ActivityEntry {
   timestamp: number;
 }
 
+/** A user comment on a market. */
+export interface Comment {
+  id: string;
+  marketId: string;
+  /** commenter wallet address (checkssummed or lowercase) */
+  author: string;
+  text: string;
+  timestamp: number;
+}
+
+/** A top holder of a market outcome (for the holders leaderboard). */
+export interface Holder {
+  trader: string;
+  outcome: Outcome;
+  /** shares held, 18-decimal wei */
+  shares: string;
+  /** true when this is demo/simulated data (no indexer yet) */
+  simulated?: boolean;
+}
+
 export const SECTORS: readonly MarketSector[] = ["STOCKS", "RWA"] as const;
 
 /** Collateral is WETH (wrapped Robinhood ETH) — the CTF requires an ERC-20. */
