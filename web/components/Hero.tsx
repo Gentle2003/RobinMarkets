@@ -55,15 +55,20 @@ export function Hero() {
         }}
       />
 
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.15 }}
-        className="mb-5 inline-flex items-center gap-2 rounded-full border border-lime/30 bg-lime/10 px-3 py-1 text-xs font-medium text-lime"
-      >
-        <LiveDot />
-        Live on Robinhood Chain · Testnet
-      </motion.div>
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted">
+          On-chain prediction market
+        </span>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.15 }}
+          className="inline-flex items-center gap-2 rounded-full border border-lime/30 bg-lime/10 px-3 py-1 text-xs font-medium text-lime"
+        >
+          <LiveDot />
+          Live on Robinhood Chain · Testnet
+        </motion.div>
+      </div>
 
       <motion.h1
         initial={{ opacity: 0, y: 14 }}
@@ -91,40 +96,44 @@ export function Hero() {
         Orders are signed off-chain and settle on-chain — no custody, no middleman.
       </motion.p>
 
-      <div className="mt-6 flex flex-wrap gap-3">
-        <a
-          href="#markets"
-          onClick={(e) => {
-            e.preventDefault();
-            smoothScrollToId("markets");
-          }}
-          className="btn-lime"
-        >
-          Explore markets →
-        </a>
-        <a
-          href="#activity"
-          onClick={(e) => {
-            e.preventDefault();
-            smoothScrollToId("activity");
-          }}
-          className="btn-ghost"
-        >
-          View live activity
-        </a>
-      </div>
+      <div className="mt-8 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+        {/* vertical CTA stack */}
+        <div className="flex flex-col gap-3 lg:w-56 lg:shrink-0">
+          <a
+            href="#markets"
+            onClick={(e) => {
+              e.preventDefault();
+              smoothScrollToId("markets");
+            }}
+            className="btn-lime w-full py-3 text-base"
+          >
+            Explore markets →
+          </a>
+          <a
+            href="#activity"
+            onClick={(e) => {
+              e.preventDefault();
+              smoothScrollToId("activity");
+            }}
+            className="btn-ghost w-full py-3"
+          >
+            View live activity
+          </a>
+        </div>
 
-      <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatTile label="Markets">
-          <AnimatedNumber value={marketCount} format={(n) => n.toFixed(0)} />
-        </StatTile>
-        <StatTile label="24h Volume" live>
-          <AnimatedNumber value={volume} format={(n) => formatVolume(n)} />
-        </StatTile>
-        <StatTile label="24h Trades" live>
-          <AnimatedNumber value={trades} format={(n) => Math.round(n).toLocaleString()} />
-        </StatTile>
-        <StatTile label="Sectors">2</StatTile>
+        {/* stats grid */}
+        <div className="grid flex-1 grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatTile label="Markets">
+            <AnimatedNumber value={marketCount} format={(n) => n.toFixed(0)} />
+          </StatTile>
+          <StatTile label="24h Volume" live>
+            <AnimatedNumber value={volume} format={(n) => formatVolume(n)} />
+          </StatTile>
+          <StatTile label="24h Trades" live>
+            <AnimatedNumber value={trades} format={(n) => Math.round(n).toLocaleString()} />
+          </StatTile>
+          <StatTile label="Sectors">2</StatTile>
+        </div>
       </div>
     </section>
   );

@@ -1,10 +1,11 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 /**
  * RobinMarkets logo mark — a feather shaft whose barbs rise into candlesticks and
  * an up-arrow, echoing the brand logo. Shapes use `currentColor` so it inverts
  * cleanly: black on the lime badge, lime on dark backgrounds.
- *
- * If you drop the real artwork at web/public/logo.png, swap <LogoMark/> for
- * <img src="/logo.png" .../> in the Header/Footer.
  */
 export function LogoMark({ className = "" }: { className?: string }) {
   return (
@@ -35,17 +36,37 @@ export function LogoMark({ className = "" }: { className?: string }) {
         <rect x="28.4" y="18" width="3.2" height="5.5" rx="0.8" />
       </g>
       {/* up-arrow tip */}
-      <path
-        d="M31 12 L 36 8 L 35 14 Z"
-        fill="currentColor"
-      />
+      <path d="M31 12 L 36 8 L 35 14 Z" fill="currentColor" />
       <path d="M34 9 L 39 5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
     </svg>
   );
 }
 
-/** Lime rounded badge wrapping the mark (header). */
+/**
+ * Brand badge. Prefers /logo.png (drop your artwork in web/public/); if that
+ * file is absent, falls back to the built-in lime SVG mark so nothing breaks.
+ */
 export function LogoBadge({ className = "" }: { className?: string }) {
+  // Default to the SVG mark; probe for /logo.png on mount and swap in if it loads.
+  // This avoids the SSR broken-image flash when no logo.png has been added yet.
+  const [imgOk, setImgOk] = useState(false);
+
+  useEffect(() => {
+    const img = new Image();
+    img.onload = () => setImgOk(true);
+    img.onerror = () => setImgOk(false);
+    img.src = "/logo.png";
+  }, []);
+
+  if (imgOk) {
+    return (
+      <span className={`relative overflow-hidden rounded-lg ${className}`}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.png" alt="RobinMarkets" className="h-full w-full object-cover" />
+      </span>
+    );
+  }
+
   return (
     <span className={`grid place-items-center rounded-lg bg-lime text-black ${className}`}>
       <LogoMark className="h-[78%] w-[78%]" />
