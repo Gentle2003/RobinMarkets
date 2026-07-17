@@ -16,11 +16,11 @@
     "@fastify/websocket": "^11.0.1",
     "@robinmarkets/shared": "workspace:*",
     "fastify": "^5.1.0",
+    "tsx": "^4.19.2",
     "viem": "^2.21.0"
   },
   "devDependencies": {
     "@types/node": "^22.9.0",
-    "tsx": "^4.19.2",
     "typescript": "^5.6.0"
   }
 }

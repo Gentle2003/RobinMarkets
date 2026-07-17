@@ -80,7 +80,8 @@ export function loadConfig(): Config {
   return {
     chain,
     chainId,
-    port: Number(process.env.ORDERBOOK_PORT ?? 4000),
+    // PORT is injected by most hosts (Railway/Render); fall back to ORDERBOOK_PORT.
+    port: Number(process.env.PORT ?? process.env.ORDERBOOK_PORT ?? 4000),
     publicClient,
     walletClient,
     operator,
