@@ -39,3 +39,6 @@ pnpm-debug.log*
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# ts build cache
+*.tsbuildinfo
