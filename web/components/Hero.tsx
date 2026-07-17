@@ -5,6 +5,7 @@ import { useMarkets, useStats } from "@/lib/hooks";
 import { AnimatedNumber } from "./AnimatedNumber";
 import { formatVolume } from "@/lib/derived";
 import { smoothScrollToId } from "@/lib/scroll";
+import { LogoArrow } from "./Logo";
 
 function LiveDot() {
   return (
@@ -105,9 +106,10 @@ export function Hero() {
               e.preventDefault();
               smoothScrollToId("markets");
             }}
-            className="btn-lime w-full py-3 text-base"
+            className="btn-lime w-full gap-2 py-3 text-base"
           >
-            Explore markets →
+            Explore Markets
+            <LogoArrow className="h-5 w-5" />
           </a>
           <a
             href="#activity"
@@ -115,9 +117,9 @@ export function Hero() {
               e.preventDefault();
               smoothScrollToId("activity");
             }}
-            className="btn-ghost w-full py-3"
+            className="btn-lime-soft w-full py-3"
           >
-            View live activity
+            View Live Activity
           </a>
         </div>
 

@@ -43,6 +43,30 @@ export function LogoMark({ className = "" }: { className?: string }) {
 }
 
 /**
+ * Arrow-styled logo mark — the brand's candlesticks rising into an up-right
+ * arrow. Used inline (e.g. on the "Explore Markets" button) in place of a plain
+ * arrow glyph. Inherits `currentColor`.
+ */
+export function LogoArrow({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+      {/* ascending candlesticks */}
+      <rect x="2.5" y="12" width="3" height="7" rx="0.8" fill="currentColor" />
+      <rect x="7" y="8" width="3" height="11" rx="0.8" fill="currentColor" />
+      {/* up-right arrow */}
+      <path d="M11 14 L 20 5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
+      <path
+        d="M13.5 5 L 20 5 L 20 11.5"
+        stroke="currentColor"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/**
  * Brand badge. Prefers /logo.png (drop your artwork in web/public/); if that
  * file is absent, falls back to the built-in lime SVG mark so nothing breaks.
  */
