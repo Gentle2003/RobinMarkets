@@ -46,23 +46,32 @@ export function LogoMark({ className = "" }: { className?: string }) {
  * Brand badge. Prefers /logo.png (drop your artwork in web/public/); if that
  * file is absent, falls back to the built-in lime SVG mark so nothing breaks.
  */
+const LOGO_CANDIDATES = ["/logo.png", "/logo.jpg", "/logo.jpeg", "/logo.webp", "/logo.svg"];
+
 export function LogoBadge({ className = "" }: { className?: string }) {
-  // Default to the SVG mark; probe for /logo.png on mount and swap in if it loads.
-  // This avoids the SSR broken-image flash when no logo.png has been added yet.
-  const [imgOk, setImgOk] = useState(false);
+  // Default to the SVG mark; probe for a /logo.* file on mount and swap in the
+  // first that loads. Avoids the SSR broken-image flash when no logo is present.
+  const [src, setSrc] = useState<string | null>(null);
 
   useEffect(() => {
-    const img = new Image();
-    img.onload = () => setImgOk(true);
-    img.onerror = () => setImgOk(false);
-    img.src = "/logo.png";
+    let cancelled = false;
+    (function probe(i: number) {
+      if (cancelled || i >= LOGO_CANDIDATES.length) return;
+      const img = new Image();
+      img.onload = () => !cancelled && setSrc(LOGO_CANDIDATES[i]);
+      img.onerror = () => probe(i + 1);
+      img.src = LOGO_CANDIDATES[i];
+    })(0);
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  if (imgOk) {
+  if (src) {
     return (
       <span className={`relative overflow-hidden rounded-lg ${className}`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.png" alt="RobinMarkets" className="h-full w-full object-cover" />
+        <img src={src} alt="RobinMarkets" className="h-full w-full object-cover" />
       </span>
     );
   }
