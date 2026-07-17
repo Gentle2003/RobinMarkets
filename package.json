@@ -5,7 +5,7 @@
   "description": "RobinMarkets — a CLOB prediction market for Stocks & RWA outcomes on Robinhood Chain",
   "packageManager": "pnpm@11.13.1",
   "engines": {
-    "node": ">=20"
+    "node": "22.x"
   },
   "scripts": {
     "chain": "cd contracts && anvil",
