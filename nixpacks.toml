@@ -1,0 +1,12 @@
+# Railway/Nixpacks runs pnpm through corepack, whose bundled version crashes with
+# `ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING` on pnpm 11.x. Bypass corepack entirely
+# by installing pnpm directly via npm, then install the workspace.
+[phases.install]
+cmds = [
+  "npm install -g pnpm@11.13.1",
+  "pnpm install --frozen-lockfile",
+]
+
+[phases.build]
+# The order book runs from source via tsx — no compile step needed.
+cmds = ["echo 'no build step'"]

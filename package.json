@@ -3,7 +3,6 @@
   "version": "0.0.1",
   "private": true,
   "description": "RobinMarkets — a CLOB prediction market for Stocks & RWA outcomes on Robinhood Chain",
-  "packageManager": "pnpm@11.13.1",
   "engines": {
     "node": "22.x"
   },
