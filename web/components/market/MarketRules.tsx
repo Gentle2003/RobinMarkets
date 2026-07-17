@@ -37,7 +37,7 @@ export function MarketRules({ market }: { market: Market }) {
           This market resolves <span className="font-medium text-yes">Yes</span> if the following is
           true at resolution, otherwise <span className="font-medium text-no">No</span>:{" "}
           <span className="text-white/90">“{market.question}”</span> Each winning share redeems for{" "}
-          <span className="text-white">1 WETH</span>; losing shares expire worthless.
+          <span className="text-white">1 ETH</span>; losing shares expire worthless.
         </p>
       </div>
 
@@ -46,7 +46,7 @@ export function MarketRules({ market }: { market: Market }) {
       <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Row label="Trading closes" value={fmtDate(market.closeTime)} />
         <Row label="Resolves after" value={fmtDate(market.resolveTime)} />
-        <Row label="Collateral" value="WETH (wrapped Robinhood ETH)" />
+        <Row label="Collateral" value="Robinhood ETH" />
         <Row
           label="Resolution source"
           value={feed ? "Chainlink price feed" : "Admin / oracle"}

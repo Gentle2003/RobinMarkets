@@ -4,6 +4,7 @@ import { useState } from "react";
 import { parseEther } from "viem";
 import {
   useAccount,
+  useBalance,
   useChainId,
   usePublicClient,
   useReadContract,
@@ -21,15 +22,19 @@ import {
   type Side,
 } from "@robinmarkets/shared";
 import { useQueryClient } from "@tanstack/react-query";
-import { useOrderbookConfig } from "@/lib/hooks";
+import { useEthPrice, useOrderbookConfig } from "@/lib/hooks";
 import { centsToPrice, createSignedOrder } from "@/lib/orders";
 import { postOrder } from "@/lib/orderbook";
 import { fmtEth } from "@/lib/format";
 
 type Outcome = "YES" | "NO";
 
+const fmtUsd = (n: number) =>
+  `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
 export function TradePanel({ market }: { market: Market }) {
   const { data: cfg } = useOrderbookConfig();
+  const { data: ethData } = useEthPrice();
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
   const publicClient = usePublicClient();
@@ -41,7 +46,7 @@ export function TradePanel({ market }: { market: Market }) {
   const [outcome, setOutcome] = useState<Outcome>("YES");
   const [side, setSide] = useState<Side>("BUY");
   const [cents, setCents] = useState(50);
-  const [shares, setShares] = useState("100");
+  const [amountUsd, setAmountUsd] = useState("50");
   const [status, setStatus] = useState<string>("");
   const [busy, setBusy] = useState(false);
 
@@ -50,11 +55,25 @@ export function TradePanel({ market }: { market: Market }) {
   const ctf = cfg?.addresses.conditionalTokens;
   const tokenId = outcome === "YES" ? market.yesPositionId : market.noPositionId;
 
-  const price = centsToPrice(cents);
-  const sharesWei = safeParseEther(shares);
-  const cost = (sharesWei * price) / PRICE_SCALE;
+  const ethUsd = ethData?.ethUsd ?? 0;
+  const usd = Math.max(0, parseFloat(amountUsd) || 0);
+  const priceFraction = cents / 100; // 0.01 .. 0.99
+  const price = centsToPrice(cents); // collateral wei per share (1e18)
+
+  // Dollars → ETH (the collateral amount you spend/receive) → shares.
+  const ethAmount = ethUsd > 0 ? usd / ethUsd : 0;
+  const collateralWei = safeParseEther(ethAmount.toFixed(18)); // == cost (buy) / proceeds (sell)
+  const sharesWei = price > 0n ? (collateralWei * PRICE_SCALE) / price : 0n;
+  const payoutUsd = priceFraction > 0 ? usd / priceFraction : 0; // if this outcome wins
+
   const wrongChain = isConnected && cfg && chainId !== cfg.chainId;
 
+  // Native Robinhood ETH balance (for wrapping) + on-chain positions.
+  const { data: nativeBal } = useBalance({
+    address,
+    chainId: cfg?.chainId,
+    query: { enabled: !!address, refetchInterval: 5000 },
+  });
   const { data: wethAllowance = 0n } = useReadContract({
     address: weth,
     abi: erc20Abi,
@@ -84,8 +103,13 @@ export function TradePanel({ market }: { market: Market }) {
     query: { enabled: !!address, refetchInterval: 5000 },
   });
 
-  const needsWethApproval = side === "BUY" && (wethAllowance as bigint) < cost;
-  const needsWeth = side === "BUY" && (wethBalance as bigint) < cost;
+  // How much native ETH we must wrap to cover a buy.
+  const wrapNeeded =
+    side === "BUY" && collateralWei > (wethBalance as bigint)
+      ? collateralWei - (wethBalance as bigint)
+      : 0n;
+  const notEnoughEth = side === "BUY" && (nativeBal?.value ?? 0n) < wrapNeeded;
+  const needsWethApproval = side === "BUY" && (wethAllowance as bigint) < collateralWei;
   const needsCtApproval = side === "SELL" && !ctApproved;
   const notEnoughShares = side === "SELL" && (outcomeBalance as bigint) < sharesWei;
 
@@ -103,19 +127,20 @@ export function TradePanel({ market }: { market: Market }) {
     }
   }
 
-  const wrapEth = () =>
+  // Wrap just enough Robinhood ETH → WETH to cover the trade (shown as "Deposit ETH").
+  const depositEth = () =>
     tx(
       () =>
         writeContractAsync({
           address: weth!,
           abi: erc20Abi,
           functionName: "deposit",
-          value: cost > 0n ? cost : parseEther("1"),
+          value: wrapNeeded > 0n ? wrapNeeded : collateralWei,
         }),
-      "Wrapping ETH"
+      "Depositing ETH"
     );
 
-  const approveWeth = () =>
+  const approve = () =>
     tx(
       () =>
         writeContractAsync({
@@ -124,7 +149,7 @@ export function TradePanel({ market }: { market: Market }) {
           functionName: "approve",
           args: [exchange!, 2n ** 255n],
         }),
-      "Approving WETH"
+      "Approving ETH"
     );
 
   const approveCt = () =>
@@ -179,8 +204,8 @@ export function TradePanel({ market }: { market: Market }) {
   }
 
   const canSubmit =
-    isConnected && !wrongChain && !busy && sharesWei > 0n && cents >= 1 && cents <= 99 &&
-    !needsWethApproval && !needsWeth && !needsCtApproval && !notEnoughShares;
+    isConnected && !wrongChain && !busy && usd > 0 && ethUsd > 0 && cents >= 1 && cents <= 99 &&
+    sharesWei > 0n && !notEnoughEth && !needsWethApproval && !needsCtApproval && !notEnoughShares;
 
   return (
     <div className="card flex flex-col gap-4 p-4">
@@ -218,7 +243,7 @@ export function TradePanel({ market }: { market: Market }) {
         ))}
       </div>
 
-      {/* Inputs */}
+      {/* Limit price */}
       <Field label="Limit price (¢)">
         <input
           type="number"
@@ -229,19 +254,38 @@ export function TradePanel({ market }: { market: Market }) {
           className="w-full bg-transparent text-right text-lg font-semibold tabular outline-none"
         />
       </Field>
-      <Field label="Shares">
+
+      {/* Dollar amount */}
+      <Field label={side === "BUY" ? "Amount to spend ($)" : "Amount to sell ($)"}>
         <input
           type="number"
           min={0}
-          value={shares}
-          onChange={(e) => setShares(e.target.value)}
+          inputMode="decimal"
+          value={amountUsd}
+          onChange={(e) => setAmountUsd(e.target.value)}
           className="w-full bg-transparent text-right text-lg font-semibold tabular outline-none"
         />
       </Field>
 
-      <div className="flex items-center justify-between rounded-xl bg-surface-2 px-3 py-2.5 text-sm">
-        <span className="text-muted">{side === "BUY" ? "Cost" : "You receive"}</span>
-        <span className="font-semibold tabular">{fmtEth(cost)} WETH</span>
+      {/* Conversion + payout */}
+      <div className="flex flex-col gap-1.5 rounded-xl bg-surface-2 px-3 py-2.5 text-sm">
+        <Row label={side === "BUY" ? "You pay" : "You receive"}>
+          <span className="font-semibold tabular">
+            {ethUsd > 0 ? `${fmtEth(collateralWei, 5)} ETH` : "…"}
+          </span>
+        </Row>
+        {side === "BUY" ? (
+          <Row label={`Payout if ${outcome} wins`}>
+            <span className="font-semibold tabular text-yes">{fmtUsd(payoutUsd)}</span>
+          </Row>
+        ) : (
+          <Row label="Shares to sell">
+            <span className="font-semibold tabular">{fmtEth(sharesWei, 2)}</span>
+          </Row>
+        )}
+        <Row label="ETH price">
+          <span className="text-muted">{ethUsd > 0 ? fmtUsd(ethUsd) : "loading…"}</span>
+        </Row>
       </div>
 
       {/* Actions */}
@@ -249,18 +293,23 @@ export function TradePanel({ market }: { market: Market }) {
         <ConnectButton />
       ) : wrongChain ? (
         <button className="btn-ghost" onClick={() => switchChain({ chainId: cfg!.chainId })}>
-          Switch to chain {cfg!.chainId}
+          Switch to Robinhood {cfg!.chainId === 46630 ? "Testnet" : "Chain"}
         </button>
       ) : (
         <div className="flex flex-col gap-2">
-          {needsWeth && (
-            <button className="btn-ghost" disabled={busy} onClick={wrapEth}>
-              Wrap ETH → WETH
+          {notEnoughEth && (
+            <p className="text-center text-xs text-no">
+              Not enough Robinhood ETH — you have {fmtEth(nativeBal?.value ?? 0n, 4)} ETH.
+            </p>
+          )}
+          {side === "BUY" && wrapNeeded > 0n && !notEnoughEth && (
+            <button className="btn-ghost" disabled={busy} onClick={depositEth}>
+              Deposit {fmtEth(wrapNeeded, 4)} ETH to trade
             </button>
           )}
-          {needsWethApproval && !needsWeth && (
-            <button className="btn-ghost" disabled={busy} onClick={approveWeth}>
-              Approve WETH
+          {needsWethApproval && wrapNeeded === 0n && (
+            <button className="btn-ghost" disabled={busy} onClick={approve}>
+              Approve ETH
             </button>
           )}
           {needsCtApproval && (
@@ -290,6 +339,15 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <span className="text-xs text-muted">{label}</span>
       {children}
     </label>
+  );
+}
+
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-muted">{label}</span>
+      {children}
+    </div>
   );
 }
 

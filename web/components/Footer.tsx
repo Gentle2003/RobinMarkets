@@ -99,7 +99,7 @@ export function Footer() {
             <ContractRow label="Conditional Tokens" address={a?.conditionalTokens} explorer={explorer} />
             <ContractRow label="Market Factory" address={a?.marketFactory} explorer={explorer} />
             <ContractRow label="Resolver" address={a?.resolver} explorer={explorer} />
-            <ContractRow label="Collateral (WETH)" address={a?.collateral} explorer={explorer} />
+            <ContractRow label="Collateral (Wrapped ETH)" address={a?.collateral} explorer={explorer} />
             {!a && <span className="text-xs text-muted">Connecting to order book…</span>}
           </div>
         </div>

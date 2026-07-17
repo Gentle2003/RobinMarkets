@@ -59,7 +59,7 @@ export function MarketPositions({ market }: { market: Market }) {
       {no > 0n && <PositionRow outcome="NO" shares={no} price={noMid} value={noValue} />}
       <div className="flex items-center justify-between border-t border-border pt-3 text-sm">
         <span className="text-muted">Est. total value</span>
-        <span className="font-semibold tabular">{fmtEth(yesValue + noValue)} WETH</span>
+        <span className="font-semibold tabular">{fmtEth(yesValue + noValue)} ETH</span>
       </div>
       <p className="text-[11px] text-muted">
         Balances are read live from the ConditionalTokens contract. Value is marked at the current
@@ -91,7 +91,7 @@ function PositionRow({
         </div>
       </div>
       <div className="text-right">
-        <div className="text-sm font-semibold tabular">{fmtEth(value)} WETH</div>
+        <div className="text-sm font-semibold tabular">{fmtEth(value)} ETH</div>
         <div className="text-[11px] text-muted">market value</div>
       </div>
     </div>

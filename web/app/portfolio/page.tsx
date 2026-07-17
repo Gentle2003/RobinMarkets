@@ -60,8 +60,8 @@ export default function PortfolioPage() {
     <div className="flex flex-col gap-6">
       <div className="card flex items-center justify-between p-5">
         <div>
-          <div className="text-xs uppercase tracking-wide text-muted">WETH balance</div>
-          <div className="text-2xl font-bold tabular">{fmtEth(wethBal)} WETH</div>
+          <div className="text-xs uppercase tracking-wide text-muted">Robinhood ETH balance</div>
+          <div className="text-2xl font-bold tabular">{fmtEth(wethBal)} ETH</div>
         </div>
       </div>
 

@@ -8,6 +8,7 @@ import {
   getBook,
   getComments,
   getConfig,
+  getEthPrice,
   getMarket,
   getMarkets,
   getStats,
@@ -25,6 +26,11 @@ export function useMarkets() {
 /** Live protocol stats — polled frequently so volume/trades visibly tick up. */
 export function useStats() {
   return useQuery({ queryKey: ["stats"], queryFn: getStats, refetchInterval: 4_000 });
+}
+
+/** ETH/USD price for $-denominated trade inputs (cached, refreshed each minute). */
+export function useEthPrice() {
+  return useQuery({ queryKey: ["ethPrice"], queryFn: getEthPrice, refetchInterval: 60_000 });
 }
 
 export function useMarket(id: string) {

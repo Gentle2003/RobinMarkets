@@ -59,6 +59,29 @@ export async function buildServer(config: Config): Promise<Server> {
     addresses: config.addresses,
   }));
 
+  // ETH/USD price for the $-denominated trade UI, cached ~60s with a fallback.
+  let ethPrice = { usd: 0, ts: 0 };
+  async function getEthUsd(): Promise<number> {
+    const now = Date.now();
+    if (ethPrice.usd > 0 && now - ethPrice.ts < 60_000) return ethPrice.usd;
+    try {
+      const r = await fetch(
+        "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd",
+        { signal: AbortSignal.timeout(5000) }
+      );
+      const j = (await r.json()) as { ethereum?: { usd?: number } };
+      const usd = Number(j?.ethereum?.usd);
+      if (usd > 0) {
+        ethPrice = { usd, ts: now };
+        return usd;
+      }
+    } catch {
+      /* fall through to cached/fallback */
+    }
+    return ethPrice.usd > 0 ? ethPrice.usd : 3000;
+  }
+  app.get("/eth-price", async () => ({ ethUsd: await getEthUsd(), updatedAt: Date.now() }));
+
   // Live protocol stats — volume/trades tick up from the activity stream.
   const VOLUME_BASE = 12_400_000;
   app.get("/stats", async () => {
