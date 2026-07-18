@@ -103,11 +103,13 @@ export function TradePanel({ market }: { market: Market }) {
     query: { enabled: !!address, refetchInterval: 5000 },
   });
 
-  // How much native ETH we must wrap to cover a buy.
+  // How much native ETH we must wrap to cover a buy (ignore sub-dust rounding).
+  const DUST = 10n ** 13n; // 0.00001 ETH
   const wrapNeeded =
     side === "BUY" && collateralWei > (wethBalance as bigint)
       ? collateralWei - (wethBalance as bigint)
       : 0n;
+  const needsDeposit = wrapNeeded > DUST;
   const notEnoughEth = side === "BUY" && (nativeBal?.value ?? 0n) < wrapNeeded;
   const needsWethApproval = side === "BUY" && (wethAllowance as bigint) < collateralWei;
   const needsCtApproval = side === "SELL" && !ctApproved;
@@ -205,7 +207,8 @@ export function TradePanel({ market }: { market: Market }) {
 
   const canSubmit =
     isConnected && !wrongChain && !busy && usd > 0 && ethUsd > 0 && cents >= 1 && cents <= 99 &&
-    sharesWei > 0n && !notEnoughEth && !needsWethApproval && !needsCtApproval && !notEnoughShares;
+    sharesWei > 0n && !notEnoughEth && !needsDeposit && !needsWethApproval && !needsCtApproval &&
+    !notEnoughShares;
 
   return (
     <div className="card flex flex-col gap-4 p-4">
@@ -302,12 +305,12 @@ export function TradePanel({ market }: { market: Market }) {
               Not enough Robinhood ETH — you have {fmtEth(nativeBal?.value ?? 0n, 4)} ETH.
             </p>
           )}
-          {side === "BUY" && wrapNeeded > 0n && !notEnoughEth && (
+          {needsDeposit && !notEnoughEth && (
             <button className="btn-ghost" disabled={busy} onClick={depositEth}>
-              Deposit {fmtEth(wrapNeeded, 4)} ETH to trade
+              Deposit {fmtEth(wrapNeeded, 6)} ETH to trade
             </button>
           )}
-          {needsWethApproval && wrapNeeded === 0n && (
+          {needsWethApproval && !needsDeposit && (
             <button className="btn-ghost" disabled={busy} onClick={approve}>
               Approve ETH
             </button>

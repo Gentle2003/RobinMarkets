@@ -21,6 +21,8 @@ export type Side = "BUY" | "SELL";
 export interface Market {
   /** keccak256 conditionId from the ConditionalTokens contract. */
   id: string;
+  /** keccak256 questionId (used for on-chain resolution). */
+  questionId?: string;
   sector: MarketSector;
   /** Underlying ticker/asset, e.g. "AAPL", "NVDA", "US-TBILL". */
   underlying: string;

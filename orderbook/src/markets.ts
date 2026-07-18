@@ -1,5 +1,11 @@
 import type { Address, Hex } from "viem";
-import { marketFactoryAbi, type Market, type MarketSector } from "@robinmarkets/shared";
+import {
+  conditionalTokensAbi,
+  marketFactoryAbi,
+  Outcome,
+  type Market,
+  type MarketSector,
+} from "@robinmarkets/shared";
 import type { Config } from "./config.js";
 
 const SECTORS: MarketSector[] = ["STOCKS", "RWA"];
@@ -39,16 +45,42 @@ export class MarketsRegistry {
       )
     );
 
+    // Read resolution status for every condition (denominator > 0 == resolved).
+    const denominators = (await Promise.all(
+      (raw as any[]).map((m) =>
+        publicClient.readContract({
+          address: addresses.conditionalTokens,
+          abi: conditionalTokensAbi,
+          functionName: "payoutDenominator",
+          args: [m.conditionId],
+        })
+      )
+    )) as bigint[];
+
     this.markets.clear();
     this.tokenInfo.clear();
-    for (const m of raw as any[]) {
+    for (let i = 0; i < (raw as any[]).length; i++) {
+      const m = (raw as any[])[i];
+      const resolved = denominators[i] > 0n;
+      let resolvedOutcome: Outcome | undefined;
+      if (resolved) {
+        const yesNum = (await publicClient.readContract({
+          address: addresses.conditionalTokens,
+          abi: conditionalTokensAbi,
+          functionName: "payoutNumerators",
+          args: [m.conditionId, 1n],
+        })) as bigint;
+        resolvedOutcome = yesNum > 0n ? Outcome.YES : Outcome.NO;
+      }
       const market: Market = {
         id: m.conditionId,
+        questionId: m.questionId,
         sector: SECTORS[Number(m.sector)] ?? "STOCKS",
         underlying: m.underlying,
         question: m.question,
         description: "",
-        status: "OPEN",
+        status: resolved ? "RESOLVED" : "OPEN",
+        resolvedOutcome,
         yesPositionId: m.yesTokenId.toString(),
         noPositionId: m.noTokenId.toString(),
         closeTime: Number(m.closeTime),
@@ -84,6 +116,15 @@ export class MarketsRegistry {
 
   get(conditionId: string): Market | undefined {
     return this.markets.get(conditionId);
+  }
+
+  /** Mark a market resolved in-memory (called by the resolver after reporting). */
+  setResolved(conditionId: string, outcome: Outcome): void {
+    const m = this.markets.get(conditionId);
+    if (m) {
+      m.status = "RESOLVED";
+      m.resolvedOutcome = outcome;
+    }
   }
 
   token(tokenId: string): TokenInfo | undefined {

@@ -12,6 +12,7 @@ import { orderHash, orderPrice, toBookOrder, verifyOrderSignature } from "./orde
 import { seedSyntheticBook } from "./seed.js";
 import { ActivityLog, startSyntheticActivity } from "./feed.js";
 import { CommentStore } from "./social.js";
+import { resolveMarket } from "./resolver.js";
 
 const REQUIRED_FIELDS: (keyof SignedOrder)[] = [
   "salt", "maker", "signer", "tokenId", "makerAmount", "takerAmount", "expiry", "nonce", "side", "signature",
@@ -81,6 +82,18 @@ export async function buildServer(config: Config): Promise<Server> {
     return ethPrice.usd > 0 ? ethPrice.usd : 3000;
   }
   app.get("/eth-price", async () => ({ ethUsd: await getEthUsd(), updatedAt: Date.now() }));
+
+  // Admin: force-resolve a market now on real data (for demo / manual override).
+  app.post<{ Body: { marketId?: string } }>("/admin/resolve", async (req, reply) => {
+    const secret = process.env.ADMIN_SECRET;
+    if (!secret || req.headers["x-admin-secret"] !== secret) {
+      return reply.code(401).send({ error: "unauthorized" });
+    }
+    if (!req.body?.marketId) return reply.code(400).send({ error: "marketId required" });
+    const result = await resolveMarket(config, markets, req.body.marketId);
+    if (result.ok) hub.broadcast({ type: "resolved", marketId: req.body.marketId, outcome: result.outcome });
+    return reply.code(result.ok ? 200 : 400).send(result);
+  });
 
   // Live protocol stats — volume/trades tick up from the activity stream.
   const VOLUME_BASE = 12_400_000;

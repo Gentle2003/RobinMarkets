@@ -216,6 +216,50 @@ export const conditionalTokensAbi = [
     inputs: [{ name: "", type: "bytes32" }],
     outputs: [{ name: "", type: "uint256" }],
   },
+  {
+    type: "function",
+    name: "payoutNumerators",
+    stateMutability: "view",
+    inputs: [
+      { name: "", type: "bytes32" },
+      { name: "", type: "uint256" },
+    ],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+] as const;
+
+export const resolverAbi = [
+  {
+    type: "function",
+    name: "adminResolve",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "questionId", type: "bytes32" },
+      { name: "yes", type: "bool" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "resolveByFeed",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "questionId", type: "bytes32" }],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "questions",
+    stateMutability: "view",
+    inputs: [{ name: "", type: "bytes32" }],
+    outputs: [
+      { name: "exists", type: "bool" },
+      { name: "resolved", type: "bool" },
+      { name: "feed", type: "address" },
+      { name: "threshold", type: "int256" },
+      { name: "greaterIsYes", type: "bool" },
+      { name: "resolveTime", type: "uint64" },
+    ],
+  },
 ] as const;
 
 export const erc20Abi = [
