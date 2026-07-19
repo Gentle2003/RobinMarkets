@@ -6,8 +6,6 @@ import { useOrderbookConfig } from "@/lib/hooks";
 import { LogoBadge } from "./Logo";
 import { shortHash } from "@/lib/format";
 
-const GITHUB = "https://github.com/Gentle2003/RobinMarkets";
-
 function Social({ href, label, children }: { href: string; label: string; children: React.ReactNode }) {
   return (
     <a
@@ -74,11 +72,6 @@ export function Footer() {
                 <path d="M20 4.4A19 19 0 0 0 15.3 3l-.3.5a14 14 0 0 1 4 .6C15.7 2.3 8.3 2.3 4.9 4.1a14 14 0 0 1 4-.6L8.7 3A19 19 0 0 0 4 4.4C1.6 8 1 11.4 1.2 14.8A19 19 0 0 0 6.9 18l.6-1c-.6-.2-1.2-.5-1.7-.9l.4-.3c3.3 1.5 6.9 1.5 10.2 0l.4.3c-.5.4-1.1.7-1.7.9l.6 1a19 19 0 0 0 5.7-3.2c.3-4-.7-7.4-3.4-10.4ZM8.5 13c-.7 0-1.3-.7-1.3-1.5S7.8 10 8.5 10s1.3.7 1.3 1.5S9.2 13 8.5 13Zm7 0c-.7 0-1.3-.7-1.3-1.5s.6-1.5 1.3-1.5 1.3.7 1.3 1.5S16.2 13 15.5 13Z" />
               </svg>
             </Social>
-            <Social href={GITHUB} label="GitHub">
-              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
-                <path d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.3-3.4-1.3-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.6.3-1.1.6-1.3-2.2-.300-4.5-1.1-4.5-5a4 4 0 0 1 1-2.7c-.1-.3-.4-1.3.1-2.6 0 0 .8-.3 2.7 1a9.4 9.4 0 0 1 5 0c1.9-1.3 2.7-1 2.7-1 .5 1.3.2 2.3.1 2.6a4 4 0 0 1 1 2.7c0 3.9-2.3 4.7-4.5 5 .3.3.6.9.6 1.8v2.7c0 .3.2.6.7.5A10 10 0 0 0 12 2Z" />
-              </svg>
-            </Social>
           </div>
         </div>
 
@@ -86,7 +79,6 @@ export function Footer() {
           <h3 className="text-xs font-semibold uppercase tracking-wide text-muted">Product</h3>
           <Link href="/" className="text-sm text-white/80 hover:text-lime">Markets</Link>
           <Link href="/portfolio" className="text-sm text-white/80 hover:text-lime">Portfolio</Link>
-          <a href={GITHUB} target="_blank" rel="noreferrer" className="text-sm text-white/80 hover:text-lime">Docs</a>
           <a href="https://docs.robinhood.com/chain/" target="_blank" rel="noreferrer" className="text-sm text-white/80 hover:text-lime">Robinhood Chain</a>
         </div>
 
