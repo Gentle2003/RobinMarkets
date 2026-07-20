@@ -13,6 +13,8 @@ import { seedSyntheticBook } from "./seed.js";
 import { ActivityLog, startSyntheticActivity } from "./feed.js";
 import { CommentStore } from "./social.js";
 import { resolveMarket } from "./resolver.js";
+import { createMarkets } from "./marketcreator.js";
+import type { Cadence } from "./catalog.js";
 
 const REQUIRED_FIELDS: (keyof SignedOrder)[] = [
   "salt", "maker", "signer", "tokenId", "makerAmount", "takerAmount", "expiry", "nonce", "side", "signature",
@@ -82,6 +84,23 @@ export async function buildServer(config: Config): Promise<Server> {
     return ethPrice.usd > 0 ? ethPrice.usd : 3000;
   }
   app.get("/eth-price", async () => ({ ethUsd: await getEthUsd(), updatedAt: Date.now() }));
+
+  // Admin: create the catalog's markets for the given cadences.
+  app.post<{ Body: { cadences?: Cadence[] } }>("/admin/create-markets", async (req, reply) => {
+    const secret = process.env.ADMIN_SECRET;
+    if (!secret || req.headers["x-admin-secret"] !== secret) {
+      return reply.code(401).send({ error: "unauthorized" });
+    }
+    const cadences = req.body?.cadences?.length
+      ? req.body.cadences
+      : (["DAILY", "WEEKLY", "MONTHLY"] as Cadence[]);
+    try {
+      const created = await createMarkets(config, markets, cadences);
+      return { created };
+    } catch (e) {
+      return reply.code(500).send({ error: (e as Error).message });
+    }
+  });
 
   // Admin: force-resolve a market now on real data (for demo / manual override).
   app.post<{ Body: { marketId?: string } }>("/admin/resolve", async (req, reply) => {

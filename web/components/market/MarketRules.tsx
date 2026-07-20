@@ -49,7 +49,11 @@ export function MarketRules({ market }: { market: Market }) {
         <Row label="Collateral" value="Robinhood ETH" />
         <Row
           label="Resolution source"
-          value={feed ? "Chainlink price feed" : "Admin / oracle"}
+          value={
+            market.autoResolvable
+              ? "Live market price (auto-resolves)"
+              : "News event (settled manually)"
+          }
           sub={feed ? shortHash(feed) : undefined}
           href={feed && explorer ? `${explorer}/address/${feed}` : undefined}
         />

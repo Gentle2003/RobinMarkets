@@ -23,6 +23,11 @@ const YAHOO_SYMBOL: Record<string, string> = {
   HOUSING: "ITB", // US home construction ETF
 };
 
+/** Whether this underlying has a live price source (and so can auto-resolve). */
+export function isPriceable(underlying: string): boolean {
+  return underlying in YAHOO_SYMBOL;
+}
+
 /** Current price (in the underlying's native unit — $ for equities, % for rates). */
 export async function getUnderlyingPrice(underlying: string): Promise<number | null> {
   const symbol = YAHOO_SYMBOL[underlying];

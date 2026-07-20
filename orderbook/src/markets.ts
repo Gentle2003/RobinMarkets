@@ -7,6 +7,7 @@ import {
   type MarketSector,
 } from "@robinmarkets/shared";
 import type { Config } from "./config.js";
+import { isPriceable } from "./prices.js";
 
 const SECTORS: MarketSector[] = ["STOCKS", "RWA"];
 
@@ -85,6 +86,7 @@ export class MarketsRegistry {
         noPositionId: m.noTokenId.toString(),
         closeTime: Number(m.closeTime),
         resolveTime: Number(m.resolveTime),
+        autoResolvable: isPriceable(m.underlying),
         createdAt: 0,
       };
       this.markets.set(market.id, market);

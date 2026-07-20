@@ -39,6 +39,9 @@ export interface Market {
   resolvedOutcome?: Outcome;
   /** Chainlink feed used for automated resolution, if any. */
   priceFeed?: `0x${string}`;
+  /** True when the underlying has a live price source and resolves automatically;
+   *  false for news/event markets that are settled manually. */
+  autoResolvable?: boolean;
   createdAt: number;
 }
 

@@ -19,6 +19,10 @@ const EMOJI: Record<string, string> = {
   WTI: "🛢️",
   REIT: "🏢",
   HOUSING: "🏠",
+  SPACEX: "🚀",
+  FED: "🏛️",
+  SP500: "📊",
+  "TOKENIZED-TSY": "📜",
 };
 
 export function assetEmoji(underlying: string): string {
@@ -49,11 +53,15 @@ const SUBCATEGORY: Record<string, string> = {
   WTI: "Energy",
   REIT: "Real Estate",
   HOUSING: "Real Estate",
+  SPACEX: "Private Markets",
+  FED: "Rates",
+  SP500: "Index",
+  "TOKENIZED-TSY": "Rates",
 };
 
 export const SUBCATEGORIES: Record<"STOCKS" | "RWA", string[]> = {
   STOCKS: ["Tech", "Consumer", "Finance", "Index"],
-  RWA: ["Metals", "Rates", "Energy", "Real Estate"],
+  RWA: ["Metals", "Rates", "Energy", "Real Estate", "Private Markets"],
 };
 
 export function subCategory(underlying: string): string {

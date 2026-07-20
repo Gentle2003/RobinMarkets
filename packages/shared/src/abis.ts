@@ -91,6 +91,33 @@ export const ctfExchangeAbi = [
 export const marketFactoryAbi = [
   {
     type: "function",
+    name: "createMarket",
+    stateMutability: "nonpayable",
+    inputs: [
+      {
+        name: "p",
+        type: "tuple",
+        components: [
+          { name: "sector", type: "uint8" },
+          { name: "underlying", type: "string" },
+          { name: "question", type: "string" },
+          { name: "collateral", type: "address" },
+          { name: "closeTime", type: "uint64" },
+          { name: "resolveTime", type: "uint64" },
+          { name: "feed", type: "address" },
+          { name: "threshold", type: "int256" },
+          { name: "greaterIsYes", type: "bool" },
+        ],
+      },
+    ],
+    outputs: [
+      { name: "conditionId", type: "bytes32" },
+      { name: "yesId", type: "uint256" },
+      { name: "noId", type: "uint256" },
+    ],
+  },
+  {
+    type: "function",
     name: "allMarketIds",
     stateMutability: "view",
     inputs: [],
