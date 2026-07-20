@@ -67,8 +67,14 @@ export function loadConfig(): Config {
   if (!chain) throw new Error(`Unsupported CHAIN_ID: ${chainId}`);
 
   const rpcUrl = process.env.RPC_URL ?? chain.rpcUrls.default.http[0];
-  // Public RPCs are rate-limited and occasionally slow; be patient and retry.
-  const transport = http(rpcUrl, { timeout: 30_000, retryCount: 6, retryDelay: 1_200 });
+  // Public RPCs are rate-limited and occasionally slow; be patient, retry, and
+  // batch calls so market loading stays cheap as the market list grows.
+  const transport = http(rpcUrl, {
+    timeout: 30_000,
+    retryCount: 6,
+    retryDelay: 1_200,
+    batch: { wait: 20 },
+  });
   const publicClient = createPublicClient({ chain, transport }) as PublicClient;
 
   let walletClient: WalletClient | undefined;

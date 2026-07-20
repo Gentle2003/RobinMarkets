@@ -2,6 +2,7 @@ import { loadConfig } from "./config.js";
 import { buildServer } from "./server.js";
 import { startMarketMaker } from "./marketmaker.js";
 import { startResolverLoop } from "./resolver.js";
+import { startMarketCreatorLoop } from "./marketcreator.js";
 
 async function main() {
   const config = loadConfig();
@@ -21,6 +22,11 @@ async function main() {
   // Auto-resolve markets on real data once their resolveTime passes.
   if (!config.dryRun && process.env.RUN_RESOLVER !== "false") {
     startResolverLoop(config, markets);
+  }
+
+  // Opt-in: keep daily/weekly/monthly markets stocked automatically (costs gas).
+  if (process.env.RUN_MARKET_CREATOR === "true") {
+    startMarketCreatorLoop(config, markets);
   }
 }
 

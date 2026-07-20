@@ -124,6 +124,26 @@ export function simulatedHolders(marketId: string, perSide = 4): SimHolder[] {
   return out.sort((a, b) => b.shares - a.shares);
 }
 
+// ── Timeframe (derived from how soon a market closes) ───────────────────────
+
+export type Timeframe = "DAILY" | "WEEKLY" | "MONTHLY" | "LONG";
+
+export const TIMEFRAME_LABEL: Record<Timeframe, string> = {
+  DAILY: "Daily",
+  WEEKLY: "Weekly",
+  MONTHLY: "Monthly",
+  LONG: "Long-dated",
+};
+
+/** Bucket a market by how soon it closes. */
+export function timeframeOf(closeTime: number, nowSecs = Date.now() / 1000): Timeframe {
+  const secs = closeTime - nowSecs;
+  if (secs <= 2 * 86400) return "DAILY";
+  if (secs <= 10 * 86400) return "WEEKLY";
+  if (secs <= 45 * 86400) return "MONTHLY";
+  return "LONG";
+}
+
 export interface TickerItem {
   symbol: string;
   price: number;

@@ -3,9 +3,24 @@ import { marketFactoryAbi } from "@robinmarkets/shared";
 import type { Config } from "./config.js";
 import type { MarketsRegistry } from "./markets.js";
 import { getUnderlyingPrice } from "./prices.js";
-import { CADENCE_SECONDS, CATALOG, roundThreshold, type Cadence } from "./catalog.js";
+import { CATALOG, closeTimeFor, roundThreshold, type Cadence } from "./catalog.js";
 
 const SECTOR_ID = { STOCKS: 0, RWA: 1 } as const;
+
+/**
+ * Identity of a market within a period, so re-running the creator is idempotent.
+ * PRICE markets collapse to one per underlying per period (the threshold moves with
+ * the live price, so the question text alone isn't stable).
+ */
+function dedupeKey(underlying: string, base: string, closeTime: number): string {
+  return `${underlying}|${base}|${closeTime}`;
+}
+
+/** Recover a stable "base" from a stored question. */
+function baseOf(question: string): string {
+  if (/^Will .+ close above \$[\d,.]+ (on|by) /.test(question)) return "PRICE";
+  return question.replace(/ \(by [^)]+\)$/, "");
+}
 
 export interface CreatedMarket {
   underlying: string;
@@ -31,12 +46,18 @@ export async function createMarkets(
   }
 
   const results: CreatedMarket[] = [];
-  const now = Math.floor(Date.now() / 1000);
-  const existing = new Set(markets.all().map((m) => m.question));
+  const existing = new Set(
+    markets.all().map((m) => dedupeKey(m.underlying, baseOf(m.question), m.closeTime))
+  );
 
   for (const t of CATALOG.filter((c) => cadences.includes(c.cadence))) {
-    const closeTime = now + CADENCE_SECONDS[t.cadence];
+    const closeTime = closeTimeFor(t.cadence);
     const resolveTime = closeTime + 3600; // resolvable an hour after close
+    const key = dedupeKey(t.underlying, t.kind === "PRICE" ? "PRICE" : t.question!, closeTime);
+    if (existing.has(key)) {
+      results.push({ underlying: t.underlying, cadence: t.cadence, kind: t.kind, skipped: "already exists for this period" });
+      continue;
+    }
     const byDate = new Date(closeTime * 1000).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -57,11 +78,6 @@ export async function createMarkets(
       question = `Will ${t.underlying} close above $${thr.toLocaleString()} ${when}?`;
     } else {
       question = `${t.question} (by ${byDate})`;
-    }
-
-    if (existing.has(question)) {
-      results.push({ underlying: t.underlying, cadence: t.cadence, kind: t.kind, question, skipped: "already exists" });
-      continue;
     }
 
     try {
@@ -86,7 +102,7 @@ export async function createMarkets(
         ],
       });
       await config.publicClient.waitForTransactionReceipt({ hash });
-      existing.add(question);
+      existing.add(key);
       results.push({ underlying: t.underlying, cadence: t.cadence, kind: t.kind, question, txHash: hash });
       console.log(`[markets] created ${t.cadence} ${t.kind} — ${question}`);
     } catch (e) {
@@ -102,4 +118,28 @@ export async function createMarkets(
 
   await markets.refresh();
   return results;
+}
+
+/**
+ * Keep the catalog stocked automatically. Runs on an interval; because close times
+ * snap to fixed period boundaries and creation is deduped, this only actually
+ * creates markets when a new day/week/month begins. Returns a stop function.
+ */
+export function startMarketCreatorLoop(
+  config: Config,
+  markets: MarketsRegistry,
+  intervalMs = 6 * 60 * 60 * 1000
+): () => void {
+  const tick = async () => {
+    try {
+      const created = await createMarkets(config, markets, ["DAILY", "WEEKLY", "MONTHLY"]);
+      const made = created.filter((c) => c.txHash);
+      if (made.length) console.log(`[markets] auto-created ${made.length} market(s)`);
+    } catch (e) {
+      console.error("[markets] auto-create failed:", (e as Error).message);
+    }
+  };
+  const timer = setInterval(tick, intervalMs);
+  void tick();
+  return () => clearInterval(timer);
 }

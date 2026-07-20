@@ -91,6 +91,35 @@ export const CADENCE_SECONDS: Record<Cadence, number> = {
   MONTHLY: 30 * 24 * 60 * 60,
 };
 
+/**
+ * Deterministic close time (unix seconds) for a cadence — the next daily/weekly/
+ * monthly boundary at 20:00 UTC. Because it snaps to a fixed boundary rather than
+ * "now + 24h", re-running the creator during the same period is idempotent.
+ */
+export function closeTimeFor(cadence: Cadence, nowMs = Date.now()): number {
+  const d = new Date(nowMs);
+  const at20 = (y: number, m: number, day: number) => Date.UTC(y, m, day, 20, 0, 0);
+
+  if (cadence === "DAILY") {
+    let t = at20(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+    if (t <= nowMs) t = at20(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1);
+    return Math.floor(t / 1000);
+  }
+
+  if (cadence === "WEEKLY") {
+    // next Friday (UTC day 5)
+    const base = new Date(at20(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+    let add = (5 - base.getUTCDay() + 7) % 7;
+    if (add === 0 && base.getTime() <= nowMs) add = 7;
+    return Math.floor(at20(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + add) / 1000);
+  }
+
+  // MONTHLY: last calendar day of the month
+  let t = at20(d.getUTCFullYear(), d.getUTCMonth() + 1, 0);
+  if (t <= nowMs) t = at20(d.getUTCFullYear(), d.getUTCMonth() + 2, 0);
+  return Math.floor(t / 1000);
+}
+
 /** Round a threshold to a human-friendly increment for the given magnitude. */
 export function roundThreshold(price: number): number {
   if (price >= 1000) return Math.round(price / 25) * 25;

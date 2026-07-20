@@ -8,27 +8,48 @@ import { SectorTabs, type SectorFilter } from "@/components/SectorTabs";
 import { Ticker } from "@/components/Ticker";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { Hero } from "@/components/Hero";
-import { subCategory, SUBCATEGORIES } from "@/lib/derived";
+import {
+  subCategory,
+  SUBCATEGORIES,
+  timeframeOf,
+  TIMEFRAME_LABEL,
+  type Timeframe,
+} from "@/lib/derived";
+
+const TIMEFRAMES: (Timeframe | "ALL")[] = ["ALL", "DAILY", "WEEKLY", "MONTHLY", "LONG"];
 
 export default function HomePage() {
   const { data: markets, isLoading, isError } = useMarkets();
   const [sector, setSector] = useState<SectorFilter>("ALL");
   const [subCat, setSubCat] = useState<string>("All");
+  const [timeframe, setTimeframe] = useState<Timeframe | "ALL">("ALL");
+  const [showResolved, setShowResolved] = useState(false);
   const [query, setQuery] = useState("");
 
   const subCats = sector === "STOCKS" || sector === "RWA" ? SUBCATEGORIES[sector] : [];
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return (markets ?? []).filter(
-      (m) =>
-        (sector === "ALL" || m.sector === sector) &&
-        (subCat === "All" || subCategory(m.underlying) === subCat) &&
-        (q === "" ||
-          m.underlying.toLowerCase().includes(q) ||
-          m.question.toLowerCase().includes(q))
+    const list = (markets ?? []).filter((m) => {
+      const resolved = m.status === "RESOLVED";
+      if (showResolved !== resolved) return false;
+      if (!(sector === "ALL" || m.sector === sector)) return false;
+      if (!(subCat === "All" || subCategory(m.underlying) === subCat)) return false;
+      if (timeframe !== "ALL" && !resolved && timeframeOf(m.closeTime) !== timeframe) return false;
+      if (q && !(m.underlying.toLowerCase().includes(q) || m.question.toLowerCase().includes(q)))
+        return false;
+      return true;
+    });
+    // Open markets: soonest close first. Resolved: most recent first.
+    return list.sort((a, b) =>
+      showResolved ? b.closeTime - a.closeTime : a.closeTime - b.closeTime
     );
-  }, [markets, sector, subCat, query]);
+  }, [markets, sector, subCat, query, timeframe, showResolved]);
+
+  const resolvedCount = useMemo(
+    () => (markets ?? []).filter((m) => m.status === "RESOLVED").length,
+    [markets]
+  );
 
   function pickSector(s: SectorFilter) {
     setSector(s);
@@ -55,6 +76,34 @@ export default function HomePage() {
               className="w-full rounded-xl border border-border bg-surface py-2 pl-8 pr-3 text-sm outline-none transition-colors focus:border-lime-dim sm:w-64"
             />
           </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {TIMEFRAMES.map((t) => (
+            <button
+              key={t}
+              onClick={() => setTimeframe(t)}
+              disabled={showResolved}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors disabled:opacity-40 ${
+                timeframe === t && !showResolved
+                  ? "bg-lime/15 text-lime ring-1 ring-lime/40"
+                  : "bg-surface-2 text-muted hover:text-white"
+              }`}
+            >
+              {t === "ALL" ? "All timeframes" : TIMEFRAME_LABEL[t as Timeframe]}
+            </button>
+          ))}
+          <span className="mx-1 h-4 w-px bg-border" />
+          <button
+            onClick={() => setShowResolved((v) => !v)}
+            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+              showResolved
+                ? "bg-lime/15 text-lime ring-1 ring-lime/40"
+                : "bg-surface-2 text-muted hover:text-white"
+            }`}
+          >
+            Resolved{resolvedCount > 0 ? ` (${resolvedCount})` : ""}
+          </button>
         </div>
 
         {subCats.length > 0 && (

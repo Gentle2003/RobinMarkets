@@ -29,11 +29,17 @@ export class MarketsRegistry {
 
   async refresh(): Promise<void> {
     const { publicClient, addresses } = this.config;
-    const ids = (await publicClient.readContract({
+    const allIds = (await publicClient.readContract({
       address: addresses.marketFactory,
       abi: marketFactoryAbi,
       functionName: "allMarketIds",
     })) as readonly Hex[];
+
+    // Markets are append-only on-chain and can never be deleted, so the list only
+    // grows. Load just the most recent slice to keep RPC load flat over time;
+    // older (long-settled) markets stay on-chain and remain redeemable directly.
+    const maxLoad = Number(process.env.MAX_MARKETS_LOADED ?? 250);
+    const ids = allIds.length > maxLoad ? allIds.slice(-maxLoad) : allIds;
 
     const raw = await Promise.all(
       ids.map((id) =>
