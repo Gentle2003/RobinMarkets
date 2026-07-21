@@ -16,6 +16,9 @@ import { resolveMarket } from "./resolver.js";
 import { createMarkets } from "./marketcreator.js";
 import type { Cadence } from "./catalog.js";
 import { getNews } from "./news.js";
+import { UserStore } from "./users.js";
+import { erc20Abi } from "@robinmarkets/shared";
+import { parseEther, verifyMessage, type Address } from "viem";
 
 const REQUIRED_FIELDS: (keyof SignedOrder)[] = [
   "salt", "maker", "signer", "tokenId", "makerAmount", "takerAmount", "expiry", "nonce", "side", "signature",
@@ -107,6 +110,58 @@ export async function buildServer(config: Config): Promise<Server> {
     }
   });
 
+  const requireAdmin = (req: { headers: Record<string, unknown> }): boolean => {
+    const secret = process.env.ADMIN_SECRET;
+    return !!secret && req.headers["x-admin-secret"] === secret;
+  };
+
+  // Admin: list every trader with on-chain balances + volume.
+  app.get("/admin/users", async (req, reply) => {
+    if (!requireAdmin(req)) return reply.code(401).send({ error: "unauthorized" });
+    const list = users.all();
+    const enriched = await Promise.all(
+      list.map(async (u) => {
+        const addr = u.address as Address;
+        const [native, weth] = await Promise.all([
+          config.publicClient.getBalance({ address: addr }).catch(() => 0n),
+          config.publicClient
+            .readContract({ address: config.addresses.collateral, abi: erc20Abi, functionName: "balanceOf", args: [addr] })
+            .catch(() => 0n),
+        ]);
+        return {
+          ...u,
+          ethBalance: (native as bigint).toString(),
+          wethBalance: (weth as bigint).toString(),
+        };
+      })
+    );
+    return { users: enriched, count: enriched.length };
+  });
+
+  // Admin: airdrop native testnet ETH to a wallet.
+  app.post<{ Body: { to?: string; amountEth?: string } }>("/admin/airdrop", async (req, reply) => {
+    if (!requireAdmin(req)) return reply.code(401).send({ error: "unauthorized" });
+    if (!config.walletClient || !config.operator) {
+      return reply.code(400).send({ error: "no operator wallet" });
+    }
+    const { to, amountEth } = req.body ?? {};
+    if (!to || !/^0x[a-fA-F0-9]{40}$/.test(to)) return reply.code(400).send({ error: "valid 'to' required" });
+    const amt = Number(amountEth);
+    if (!(amt > 0) || amt > 0.05) return reply.code(400).send({ error: "amountEth must be >0 and ≤0.05" });
+    try {
+      const hash = await config.walletClient.sendTransaction({
+        account: config.operator,
+        chain: config.chain,
+        to: to as Address,
+        value: parseEther(String(amt)),
+      });
+      await config.publicClient.waitForTransactionReceipt({ hash });
+      return { ok: true, to, amountEth: amt, txHash: hash };
+    } catch (e) {
+      return reply.code(500).send({ error: (e as Error).message.split("\n")[0] });
+    }
+  });
+
   // Admin: force-resolve a market now on real data (for demo / manual override).
   app.post<{ Body: { marketId?: string } }>("/admin/resolve", async (req, reply) => {
     const secret = process.env.ADMIN_SECRET;
@@ -155,6 +210,41 @@ export async function buildServer(config: Config): Promise<Server> {
     const limit = Math.min(Number(req.query.limit ?? 40), 100);
     return activity.recent(req.query.marketId, limit);
   });
+
+  const users = new UserStore();
+
+  // ── Profiles (username claimed by wallet signature) ───────────────────────
+  app.get<{ Params: { address: string } }>("/profile/:address", async (req, reply) => {
+    const u = users.get(req.params.address);
+    if (!u?.username) return reply.code(404).send({ error: "no profile" });
+    return { address: u.address, username: u.username };
+  });
+
+  app.post<{ Body: { address?: string; username?: string; signature?: string } }>(
+    "/profile",
+    async (req, reply) => {
+      const { address, username, signature } = req.body ?? {};
+      if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
+        return reply.code(400).send({ error: "valid address required" });
+      }
+      const clean = (username ?? "").trim();
+      if (!/^[a-zA-Z0-9_]{3,24}$/.test(clean)) {
+        return reply.code(400).send({ error: "username must be 3–24 chars (a–z, 0–9, _)" });
+      }
+      if (!signature) return reply.code(400).send({ error: "signature required" });
+      const ok = await verifyMessage({
+        address: address as Address,
+        message: `Set my RobinMarkets username to: ${clean}`,
+        signature: signature as `0x${string}`,
+      }).catch(() => false);
+      if (!ok) return reply.code(401).send({ error: "bad signature" });
+
+      if (!users.setUsername(address, clean)) {
+        return reply.code(409).send({ error: "username taken" });
+      }
+      return { address, username: clean };
+    }
+  );
 
   const comments = new CommentStore();
 
@@ -239,7 +329,13 @@ export async function buildServer(config: Config): Promise<Server> {
       };
       activity.push(entry);
       hub.broadcast({ type: "activity", entry });
+
+      // Grow the taker's trader stats (volume in display dollars).
+      const shares = Number(BigInt(t.fillShares) / 10n ** 15n) / 1000;
+      const priceFrac = Number(BigInt(t.price) / 10n ** 12n) / 1e6;
+      users.recordTrade(o.maker, shares * priceFrac * 24);
     }
+    if (!trades.length) users.recordTrade(o.maker, 0); // still register the wallet
 
     if (trades.length) hub.broadcast({ type: "trades", trades });
     publishBook(o.tokenId);

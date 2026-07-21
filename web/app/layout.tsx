@@ -5,6 +5,7 @@ import { Providers } from "./providers";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { MarketBackground } from "@/components/MarketBackground";
+import { UsernamePrompt } from "@/components/UsernamePrompt";
 
 export const metadata: Metadata = {
   title: "RobinMarkets — Stocks & RWA prediction markets",
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Header />
           <main className="mx-auto w-full max-w-5xl px-4 pb-24 pt-6">{children}</main>
           <Footer />
+          <UsernamePrompt />
         </Providers>
         <Analytics />
       </body>

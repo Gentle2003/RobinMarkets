@@ -12,6 +12,7 @@ import {
   getMarket,
   getMarkets,
   getNews,
+  getProfile,
   getStats,
   subscribe,
 } from "./orderbook";
@@ -37,6 +38,19 @@ export function useEthPrice() {
 /** Breaking-news headlines, refreshed every few minutes. */
 export function useNews() {
   return useQuery({ queryKey: ["news"], queryFn: getNews, refetchInterval: 5 * 60_000 });
+}
+
+/** A wallet's claimed username (null if none set). */
+export function useProfile(address: string | undefined) {
+  return useQuery({
+    queryKey: ["profile", address],
+    queryFn: () =>
+      getProfile(address!)
+        .then((p) => p.username)
+        .catch(() => null),
+    enabled: !!address,
+    staleTime: 60_000,
+  });
 }
 
 export function useMarket(id: string) {

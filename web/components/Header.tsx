@@ -3,7 +3,20 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useAccount } from "wagmi";
 import { LogoBadge } from "./Logo";
+import { useProfile } from "@/lib/hooks";
+
+function UsernameBadge() {
+  const { address } = useAccount();
+  const { data: username } = useProfile(address);
+  if (!username) return null;
+  return (
+    <span className="hidden rounded-lg bg-lime/10 px-2.5 py-1.5 text-sm font-semibold text-lime sm:inline">
+      @{username}
+    </span>
+  );
+}
 
 export function Header() {
   const pathname = usePathname();
@@ -39,11 +52,10 @@ export function Header() {
             })}
           </nav>
         </div>
-        <ConnectButton
-          showBalance={false}
-          accountStatus="address"
-          chainStatus="icon"
-        />
+        <div className="flex items-center gap-2">
+          <UsernameBadge />
+          <ConnectButton showBalance={false} accountStatus="address" chainStatus="icon" />
+        </div>
       </div>
     </header>
   );

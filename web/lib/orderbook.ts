@@ -39,6 +39,47 @@ export const getConfig = () => get<OrderbookConfig>("/config");
 export const getStats = () => get<Stats>("/stats");
 export const getEthPrice = () => get<{ ethUsd: number; updatedAt: number }>("/eth-price");
 export const getNews = () => get<NewsItem[]>("/news");
+
+export const getProfile = (address: string) =>
+  get<{ address: string; username: string }>(`/profile/${address}`);
+
+export async function postProfile(input: { address: string; username: string; signature: string }) {
+  const res = await fetch(`${ORDERBOOK_URL}/profile`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? "failed");
+  return res.json() as Promise<{ address: string; username: string }>;
+}
+
+export interface AdminUser {
+  address: string;
+  username?: string;
+  firstSeen: number;
+  lastSeen: number;
+  trades: number;
+  volume: number;
+  ethBalance: string;
+  wethBalance: string;
+}
+
+export async function getAdminUsers(secret: string) {
+  const res = await fetch(`${ORDERBOOK_URL}/admin/users`, { headers: { "x-admin-secret": secret } });
+  if (!res.ok) throw new Error(res.status === 401 ? "wrong admin key" : "failed");
+  return res.json() as Promise<{ users: AdminUser[]; count: number }>;
+}
+
+export async function adminAirdrop(secret: string, to: string, amountEth: string) {
+  const res = await fetch(`${ORDERBOOK_URL}/admin/airdrop`, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-admin-secret": secret },
+    body: JSON.stringify({ to, amountEth }),
+  });
+  const j = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(j.error ?? "airdrop failed");
+  return j as { ok: boolean; txHash: string };
+}
 export const getMarkets = () => get<Market[]>("/markets");
 export const getMarket = (id: string) => get<Market>(`/markets/${id}`);
 export const getBook = (tokenId: string) => get<OrderBookSnapshot>(`/book/${tokenId}`);
