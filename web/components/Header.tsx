@@ -6,6 +6,7 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 import { LogoBadge } from "./Logo";
 import { useProfile } from "@/lib/hooks";
+import { HowItWorksButton } from "./HowItWorks";
 
 function UsernameBadge() {
   const { address } = useAccount();
@@ -50,6 +51,7 @@ export function Header() {
                 </Link>
               );
             })}
+            <HowItWorksButton />
           </nav>
         </div>
         <div className="flex items-center gap-2">
