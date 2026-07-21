@@ -34,6 +34,11 @@ export function getSql(): Sql | null {
   return sql;
 }
 
+/** Whether durable Postgres persistence is active. */
+export function dbEnabled(): boolean {
+  return sql !== null;
+}
+
 /** Connect (if configured) and create tables. Falls back to in-memory on error. */
 export async function initDb(): Promise<boolean> {
   const client = connect();

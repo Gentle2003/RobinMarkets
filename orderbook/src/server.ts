@@ -17,7 +17,7 @@ import { createMarkets } from "./marketcreator.js";
 import type { Cadence } from "./catalog.js";
 import { getNews } from "./news.js";
 import { UserStore } from "./users.js";
-import { initDb } from "./db.js";
+import { initDb, dbEnabled } from "./db.js";
 import { erc20Abi } from "@robinmarkets/shared";
 import { parseEther, verifyMessage, type Address } from "viem";
 
@@ -61,6 +61,7 @@ export async function buildServer(config: Config): Promise<Server> {
     chainId: config.chainId,
     dryRun: config.dryRun,
     markets: markets.all().length,
+    db: dbEnabled() ? "postgres" : "memory",
   }));
 
   // Lets the web app discover contract addresses without env juggling in dev.
