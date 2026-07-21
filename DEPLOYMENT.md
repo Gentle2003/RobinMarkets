@@ -80,10 +80,25 @@ in Vercel and redeploy.
   linking to the testnet explorer; live stats tick; connecting a wallet on chain
   `46630` lets you trade.
 
+## Persistence (optional but recommended)
+
+Usernames/traders and comments persist to **Postgres** when `DATABASE_URL` is set;
+otherwise they live in memory and reset on redeploy. To enable on Railway:
+
+1. In your project, **+ New → Database → Add PostgreSQL**.
+2. On the **RobinMarkets** service → **Variables**, add `DATABASE_URL` and set its
+   value to a reference to the Postgres service's connection string (Railway lets
+   you pick `${{ Postgres.DATABASE_URL }}`).
+3. Redeploy. On boot the log shows `[db] connected — persistence enabled` and the
+   `users` / `comments` tables are created automatically.
+
+If the DB is unreachable the service logs `[db] init failed, running in-memory`
+and keeps serving — it never crashes over the database.
+
 ## Notes
 
-- The order book keeps orders/activity **in memory** — a redeploy resets them
-  (fine for the demo; add a database later for persistence).
+- Order-book depth/activity are still in memory and regenerate on restart (the
+  market maker re-seeds); resting user orders are not yet persisted.
 - CORS is already open (`@fastify/cors`), so the split origin works out of the box.
 - Keep a little testnet ETH on the operator address
   (`0x214bf38BCdD62faeD40238dc5C343934036E9769`) so it can settle real matches.

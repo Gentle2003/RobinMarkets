@@ -16,6 +16,7 @@
     "@fastify/websocket": "^11.0.1",
     "@robinmarkets/shared": "workspace:*",
     "fastify": "^5.1.0",
+    "postgres": "^3.4.9",
     "tsx": "^4.19.2",
     "viem": "^2.21.0"
   },

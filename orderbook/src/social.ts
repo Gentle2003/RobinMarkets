@@ -1,10 +1,36 @@
 import type { Comment } from "@robinmarkets/shared";
+import { getSql } from "./db.js";
 
 const MAX_PER_MARKET = 200;
 
-/** In-memory comment store, newest first per market. */
+/**
+ * Comment store — in-memory cache with write-through + load-on-boot to Postgres
+ * when a database is configured (otherwise purely in-memory).
+ */
 export class CommentStore {
   private byMarket = new Map<string, Comment[]>();
+
+  /** Load recent comments into the cache on startup. */
+  async init(): Promise<void> {
+    const sql = getSql();
+    if (!sql) return;
+    const rows = await sql<
+      { id: string; market_id: string; author: string; body: string; ts: string }[]
+    >`SELECT * FROM comments ORDER BY ts ASC`;
+    for (const r of rows) {
+      const c: Comment = {
+        id: r.id,
+        marketId: r.market_id,
+        author: r.author,
+        text: r.body,
+        timestamp: Number(r.ts),
+      };
+      const list = this.byMarket.get(c.marketId) ?? [];
+      list.unshift(c); // ascending load → newest ends up first
+      if (list.length > MAX_PER_MARKET) list.length = MAX_PER_MARKET;
+      this.byMarket.set(c.marketId, list);
+    }
+  }
 
   add(marketId: string, author: string, text: string): Comment {
     const comment: Comment = {
@@ -18,6 +44,14 @@ export class CommentStore {
     list.unshift(comment);
     if (list.length > MAX_PER_MARKET) list.length = MAX_PER_MARKET;
     this.byMarket.set(marketId, list);
+
+    const sql = getSql();
+    if (sql) {
+      sql`
+        INSERT INTO comments (id, market_id, author, body, ts)
+        VALUES (${comment.id}, ${marketId}, ${author}, ${comment.text}, ${comment.timestamp})
+      `.catch((e) => console.error("[db] comment persist:", (e as Error).message));
+    }
     return comment;
   }
 

@@ -17,6 +17,7 @@ import { createMarkets } from "./marketcreator.js";
 import type { Cadence } from "./catalog.js";
 import { getNews } from "./news.js";
 import { UserStore } from "./users.js";
+import { initDb } from "./db.js";
 import { erc20Abi } from "@robinmarkets/shared";
 import { parseEther, verifyMessage, type Address } from "viem";
 
@@ -34,6 +35,8 @@ export async function buildServer(config: Config): Promise<Server> {
   const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? "info" } });
   await app.register(cors, { origin: true });
   await app.register(websocket);
+
+  await initDb();
 
   const markets = new MarketsRegistry(config);
   await markets.refresh();
@@ -212,6 +215,7 @@ export async function buildServer(config: Config): Promise<Server> {
   });
 
   const users = new UserStore();
+  await users.init();
 
   // ── Profiles (username claimed by wallet signature) ───────────────────────
   app.get<{ Params: { address: string } }>("/profile/:address", async (req, reply) => {
@@ -247,6 +251,7 @@ export async function buildServer(config: Config): Promise<Server> {
   );
 
   const comments = new CommentStore();
+  await comments.init();
 
   app.get<{ Querystring: { marketId?: string } }>("/comments", async (req, reply) => {
     if (!req.query.marketId) return reply.code(400).send({ error: "marketId required" });
