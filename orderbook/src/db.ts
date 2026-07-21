@@ -11,6 +11,15 @@ let sql: Sql | null = null;
 function connect(): Sql | null {
   const url = process.env.DATABASE_URL;
   if (!url) return null;
+  // Only Postgres is supported. Ignore stale/other schemes (e.g. a leftover
+  // sqlite: placeholder) so they can't crash startup — just run in-memory.
+  if (!/^postgres(ql)?:\/\//i.test(url)) {
+    console.warn(
+      `[db] DATABASE_URL is not a postgres:// URL ("${url.split(":")[0]}:…") — ` +
+        `ignoring and running in-memory. Set a Postgres connection string to persist.`
+    );
+    return null;
+  }
   // Internal Railway/localhost connections don't use TLS; external ones do.
   const noSsl = /\.railway\.internal|localhost|127\.0\.0\.1/.test(url) && !/sslmode=require/.test(url);
   return postgres(url, {
