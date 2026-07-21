@@ -16,7 +16,7 @@ interface Step {
 /** A mini market-card mock for step 1. */
 function MarketMock() {
   return (
-    <div className="w-full max-w-[260px] rounded-2xl border border-border bg-surface-2 p-4 text-left">
+    <div className="w-full max-w-[260px] rounded-2xl border border-white/10 bg-black/30 p-4 text-left">
       <div className="flex items-center gap-2 text-sm font-semibold">🍎 AAPL <span className="pill bg-yes/10 text-yes">Daily</span></div>
       <p className="mt-2 text-sm text-white/90">Will AAPL close above $335 today?</p>
       <div className="mt-3 flex items-baseline gap-1">
@@ -31,7 +31,7 @@ function MarketMock() {
 /** A Yes/No buy mock for step 2. */
 function BuyMock() {
   return (
-    <div className="w-full max-w-[260px] rounded-2xl border border-border bg-surface-2 p-4 text-left">
+    <div className="w-full max-w-[260px] rounded-2xl border border-white/10 bg-black/30 p-4 text-left">
       <div className="grid grid-cols-2 gap-2">
         <div className="rounded-xl border border-yes bg-yes/10 py-2 text-center text-sm font-bold text-yes">YES</div>
         <div className="rounded-xl border border-border py-2 text-center text-sm font-bold text-muted">NO</div>
@@ -51,7 +51,7 @@ function BuyMock() {
 /** A win / redeem mock for step 3. */
 function WinMock() {
   return (
-    <div className="w-full max-w-[260px] rounded-2xl border border-yes/40 bg-yes/10 p-4 text-center">
+    <div className="w-full max-w-[260px] rounded-2xl border border-lime/40 bg-black/30 p-4 text-center">
       <div className="text-4xl">🏆</div>
       <p className="mt-2 text-sm font-semibold text-yes">Resolved YES — you were right</p>
       <div className="mt-3 rounded-xl bg-black/20 py-2 text-sm font-bold text-white">Redeem 0.0445 ETH</div>
@@ -105,7 +105,7 @@ export function HowItWorksButton({ className = "" }: { className?: string }) {
             onClick={close}
           >
             <motion.div
-              className="card w-full max-w-lg overflow-hidden"
+              className="w-full max-w-lg overflow-hidden rounded-2xl border border-lime/30 bg-lime/10 shadow-[0_20px_80px_-20px_rgba(195,245,60,0.35)] backdrop-blur-2xl"
               initial={{ scale: 0.94, y: 12 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.94, y: 12 }}
@@ -126,7 +126,7 @@ export function HowItWorksButton({ className = "" }: { className?: string }) {
                     key={i}
                     onClick={() => setStep(i)}
                     className={`h-1.5 flex-1 rounded-full transition-colors ${
-                      i <= step ? "bg-lime" : "bg-surface-2"
+                      i <= step ? "bg-lime" : "bg-black/25"
                     }`}
                   />
                 ))}
@@ -158,7 +158,7 @@ export function HowItWorksButton({ className = "" }: { className?: string }) {
               </div>
 
               {/* footer nav */}
-              <div className="flex items-center justify-between gap-3 border-t border-border px-6 py-4">
+              <div className="flex items-center justify-between gap-3 border-t border-lime/20 px-6 py-4">
                 <button
                   className="btn-ghost text-sm disabled:opacity-30"
                   onClick={() => setStep((v) => Math.max(0, v - 1))}
