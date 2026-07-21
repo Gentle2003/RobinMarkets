@@ -11,6 +11,7 @@ import {
   getEthPrice,
   getMarket,
   getMarkets,
+  getNews,
   getStats,
   subscribe,
 } from "./orderbook";
@@ -31,6 +32,11 @@ export function useStats() {
 /** ETH/USD price for $-denominated trade inputs (cached, refreshed each minute). */
 export function useEthPrice() {
   return useQuery({ queryKey: ["ethPrice"], queryFn: getEthPrice, refetchInterval: 60_000 });
+}
+
+/** Breaking-news headlines, refreshed every few minutes. */
+export function useNews() {
+  return useQuery({ queryKey: ["news"], queryFn: getNews, refetchInterval: 5 * 60_000 });
 }
 
 export function useMarket(id: string) {

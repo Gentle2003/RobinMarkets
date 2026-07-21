@@ -121,6 +121,16 @@ export interface Holder {
   simulated?: boolean;
 }
 
+/** A breaking-news headline linked to a ticker/market. */
+export interface NewsItem {
+  id: string;
+  ticker: string;
+  title: string;
+  publisher: string;
+  url: string;
+  timestamp: number;
+}
+
 export const SECTORS: readonly MarketSector[] = ["STOCKS", "RWA"] as const;
 
 /** Collateral is WETH (wrapped Robinhood ETH) — the CTF requires an ERC-20. */

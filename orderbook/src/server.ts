@@ -15,6 +15,7 @@ import { CommentStore } from "./social.js";
 import { resolveMarket } from "./resolver.js";
 import { createMarkets } from "./marketcreator.js";
 import type { Cadence } from "./catalog.js";
+import { getNews } from "./news.js";
 
 const REQUIRED_FIELDS: (keyof SignedOrder)[] = [
   "salt", "maker", "signer", "tokenId", "makerAmount", "takerAmount", "expiry", "nonce", "side", "signature",
@@ -84,6 +85,10 @@ export async function buildServer(config: Config): Promise<Server> {
     return ethPrice.usd > 0 ? ethPrice.usd : 3000;
   }
   app.get("/eth-price", async () => ({ ethUsd: await getEthUsd(), updatedAt: Date.now() }));
+
+  app.get<{ Querystring: { limit?: string } }>("/news", async (req) =>
+    getNews(Math.min(Number(req.query.limit ?? 24), 40))
+  );
 
   // Admin: create the catalog's markets for the given cadences.
   app.post<{ Body: { cadences?: Cadence[] } }>("/admin/create-markets", async (req, reply) => {

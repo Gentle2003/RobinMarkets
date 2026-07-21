@@ -3,6 +3,7 @@ import type {
   ActivityEntry,
   Comment,
   Market,
+  NewsItem,
   OrderBookSnapshot,
   SignedOrder,
 } from "@robinmarkets/shared";
@@ -37,6 +38,7 @@ export interface Stats {
 export const getConfig = () => get<OrderbookConfig>("/config");
 export const getStats = () => get<Stats>("/stats");
 export const getEthPrice = () => get<{ ethUsd: number; updatedAt: number }>("/eth-price");
+export const getNews = () => get<NewsItem[]>("/news");
 export const getMarkets = () => get<Market[]>("/markets");
 export const getMarket = (id: string) => get<Market>(`/markets/${id}`);
 export const getBook = (tokenId: string) => get<OrderBookSnapshot>(`/book/${tokenId}`);
