@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { useAccount, useSignMessage } from "wagmi";
 import { useQueryClient } from "@tanstack/react-query";
 import { useProfile } from "@/lib/hooks";
@@ -11,6 +12,7 @@ import { postProfile } from "@/lib/orderbook";
  * message to claim a handle (proving wallet ownership); it's stored server-side.
  */
 export function UsernamePrompt() {
+  const pathname = usePathname();
   const { address, isConnected } = useAccount();
   const { data: username, isLoading } = useProfile(address);
   const { signMessageAsync } = useSignMessage();
@@ -21,7 +23,9 @@ export function UsernamePrompt() {
   const [error, setError] = useState("");
   const [dismissed, setDismissed] = useState(false);
 
-  const open = isConnected && !isLoading && username === null && !dismissed;
+  // Never nag on the admin panel — that's secret-gated, not wallet-based.
+  const open =
+    isConnected && !isLoading && username === null && !dismissed && !pathname.startsWith("/admin");
   if (!open) return null;
 
   async function claim() {
