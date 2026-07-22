@@ -7,6 +7,7 @@ import { useAccount } from "wagmi";
 import { LogoBadge } from "./Logo";
 import { useProfile } from "@/lib/hooks";
 import { HowItWorksButton } from "./HowItWorks";
+import { TokenCa } from "./TokenCa";
 
 function UsernameBadge() {
   const { address } = useAccount();
@@ -30,12 +31,15 @@ export function Header() {
     <header className="sticky top-0 z-40 border-b border-border bg-canvas/80 backdrop-blur">
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3">
         <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-2">
-            <LogoBadge className="h-8 w-8" />
-            <span className="text-lg font-bold tracking-tight">
-              Robin<span className="text-lime">Markets</span>
-            </span>
-          </Link>
+          <div className="flex flex-col gap-1">
+            <Link href="/" className="flex items-center gap-2">
+              <LogoBadge className="h-8 w-8" />
+              <span className="text-lg font-bold tracking-tight">
+                Robin<span className="text-lime">Markets</span>
+              </span>
+            </Link>
+            <TokenCa />
+          </div>
           <nav className="hidden gap-1 sm:flex">
             {nav.map((n) => {
               const active = n.href === "/" ? pathname === "/" : pathname.startsWith(n.href);

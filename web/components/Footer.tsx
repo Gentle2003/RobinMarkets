@@ -72,6 +72,17 @@ export function Footer() {
                 <path d="M20 4.4A19 19 0 0 0 15.3 3l-.3.5a14 14 0 0 1 4 .6C15.7 2.3 8.3 2.3 4.9 4.1a14 14 0 0 1 4-.6L8.7 3A19 19 0 0 0 4 4.4C1.6 8 1 11.4 1.2 14.8A19 19 0 0 0 6.9 18l.6-1c-.6-.2-1.2-.5-1.7-.9l.4-.3c3.3 1.5 6.9 1.5 10.2 0l.4.3c-.5.4-1.1.7-1.7.9l.6 1a19 19 0 0 0 5.7-3.2c.3-4-.7-7.4-3.4-10.4ZM8.5 13c-.7 0-1.3-.7-1.3-1.5S7.8 10 8.5 10s1.3.7 1.3 1.5S9.2 13 8.5 13Zm7 0c-.7 0-1.3-.7-1.3-1.5s.6-1.5 1.3-1.5 1.3.7 1.3 1.5S16.2 13 15.5 13Z" />
               </svg>
             </Social>
+            <Social href="https://medium.com/@robinmarkets" label="Medium">
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+                <path d="M13.54 12a6.8 6.8 0 0 1-6.77 6.82A6.8 6.8 0 0 1 0 12a6.8 6.8 0 0 1 6.77-6.82A6.8 6.8 0 0 1 13.54 12zM20.96 12c0 3.54-1.51 6.42-3.38 6.42s-3.39-2.88-3.39-6.42 1.52-6.42 3.39-6.42 3.38 2.88 3.38 6.42M24 12c0 3.17-.53 5.75-1.19 5.75s-1.19-2.58-1.19-5.75.53-5.75 1.19-5.75S24 8.83 24 12z" />
+              </svg>
+            </Social>
+            <Social href="mailto:rms@robinmarkets.app" label="Email rms@robinmarkets.app">
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <rect x="3" y="5" width="18" height="14" rx="2" />
+                <path d="M3 7l9 6 9-6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </Social>
           </div>
         </div>
 
