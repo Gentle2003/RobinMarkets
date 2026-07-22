@@ -70,15 +70,55 @@ export async function getAdminUsers(secret: string) {
   return res.json() as Promise<{ users: AdminUser[]; count: number }>;
 }
 
-export async function adminAirdrop(secret: string, to: string, amountEth: string) {
+export async function adminAirdrop(
+  secret: string,
+  input: { to?: string; username?: string; amountEth: string; note?: string }
+) {
   const res = await fetch(`${ORDERBOOK_URL}/admin/airdrop`, {
     method: "POST",
     headers: { "content-type": "application/json", "x-admin-secret": secret },
-    body: JSON.stringify({ to, amountEth }),
+    body: JSON.stringify(input),
   });
   const j = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(j.error ?? "airdrop failed");
-  return j as { ok: boolean; txHash: string };
+  return j as { ok: boolean; reward: Reward };
+}
+
+export interface UserStats {
+  address: string;
+  username: string | null;
+  trades: number;
+  volume: number;
+  firstSeen: number;
+  lastSeen: number;
+}
+
+export const getUserStats = (address: string) => get<UserStats>(`/users/${address}`);
+
+export interface Reward {
+  id: string;
+  address: string;
+  username?: string;
+  amountWei: string;
+  note?: string;
+  status: "CLAIMABLE" | "CLAIMED";
+  allocatedAt: number;
+  claimedAt?: number;
+  txHash?: string;
+}
+
+export const getRewards = (address: string) =>
+  get<{ rewards: Reward[]; claimableWei: string; count: number }>(`/rewards/${address}`);
+
+export async function claimReward(input: { address: string; rewardId: string; signature: string }) {
+  const res = await fetch(`${ORDERBOOK_URL}/rewards/claim`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  const j = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(j.error ?? "claim failed");
+  return j as { ok: boolean; txHash: string; amountWei: string };
 }
 export const getMarkets = () => get<Market[]>("/markets");
 export const getMarket = (id: string) => get<Market>(`/markets/${id}`);

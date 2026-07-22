@@ -54,8 +54,8 @@ export default function AdminPage() {
     if (!amount) return;
     setNote(`Airdropping ${amount} ETH…`);
     try {
-      const r = await adminAirdrop(secret, to, amount);
-      setNote(`Sent ${amount} ETH ✓ (${shortHash(r.txHash)})`);
+      await adminAirdrop(secret, { to, amountEth: amount });
+      setNote(`Allocated ${amount} ETH ✓ — claimable by ${shortHash(to)}`);
       load();
     } catch (e) {
       setNote(`Airdrop failed: ${(e as Error).message}`);

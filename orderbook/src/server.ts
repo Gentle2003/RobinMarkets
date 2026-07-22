@@ -291,6 +291,22 @@ export async function buildServer(config: Config): Promise<Server> {
     return { address: u.address, username: u.username };
   });
 
+  // Public trading stats for one wallet (its own dashboard reads this).
+  app.get<{ Params: { address: string } }>("/users/:address", async (req, reply) => {
+    if (!/^0x[a-fA-F0-9]{40}$/.test(req.params.address)) {
+      return reply.code(400).send({ error: "invalid address" });
+    }
+    const u = users.get(req.params.address);
+    return {
+      address: req.params.address,
+      username: u?.username ?? null,
+      trades: u?.trades ?? 0,
+      volume: u?.volume ?? 0,
+      firstSeen: u?.firstSeen ?? 0,
+      lastSeen: u?.lastSeen ?? 0,
+    };
+  });
+
   app.post<{ Body: { address?: string; username?: string; signature?: string } }>(
     "/profile",
     async (req, reply) => {

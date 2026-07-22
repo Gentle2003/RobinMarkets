@@ -13,7 +13,9 @@ import {
   getMarkets,
   getNews,
   getProfile,
+  getRewards,
   getStats,
+  getUserStats,
   subscribe,
 } from "./orderbook";
 
@@ -38,6 +40,26 @@ export function useEthPrice() {
 /** Breaking-news headlines, refreshed every few minutes. */
 export function useNews() {
   return useQuery({ queryKey: ["news"], queryFn: getNews, refetchInterval: 5 * 60_000 });
+}
+
+/** A wallet's public trading stats (volume, trade count). */
+export function useUserStats(address: string | undefined) {
+  return useQuery({
+    queryKey: ["userStats", address],
+    queryFn: () => getUserStats(address!),
+    enabled: !!address,
+    refetchInterval: 15_000,
+  });
+}
+
+/** A wallet's claimable + claimed airdrop rewards. */
+export function useRewards(address: string | undefined) {
+  return useQuery({
+    queryKey: ["rewards", address],
+    queryFn: () => getRewards(address!),
+    enabled: !!address,
+    refetchInterval: 20_000,
+  });
 }
 
 /** A wallet's claimed username (null if none set). */
