@@ -7,10 +7,11 @@ import { PRICE_SCALE } from "@robinmarkets/shared";
 import { useBook } from "@/lib/hooks";
 import { midPrice } from "@/lib/price";
 import { priceToPct, sectorLabel, timeUntil } from "@/lib/format";
-import { assetEmoji, fakeChange, fakeVolume, formatVolume, sparkline, subCategory } from "@/lib/derived";
+import { fakeChange, fakeVolume, formatVolume, sparkline, subCategory } from "@/lib/derived";
 import { AnimatedNumber } from "./AnimatedNumber";
 import { Sparkline } from "./Sparkline";
 import { FavoriteButton } from "./FavoriteButton";
+import { AssetIcon } from "./AssetIcon";
 
 export function MarketCard({ market }: { market: Market }) {
   const { data: book } = useBook(market.yesPositionId);
@@ -33,8 +34,8 @@ export function MarketCard({ market }: { market: Market }) {
       >
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-surface-2 text-lg">
-              {assetEmoji(market.underlying)}
+            <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-xl bg-surface-2">
+              <AssetIcon underlying={market.underlying} size={24} />
             </span>
             <div>
               <div className="flex items-center gap-2 text-sm font-semibold">

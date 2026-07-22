@@ -7,7 +7,7 @@ import { PRICE_SCALE } from "@robinmarkets/shared";
 import { useMarket, useBook } from "@/lib/hooks";
 import { midPrice } from "@/lib/price";
 import { priceToPct, sectorLabel, timeUntil } from "@/lib/format";
-import { assetEmoji, fakeChange, fakeVolume, formatVolume, sparkline } from "@/lib/derived";
+import { fakeChange, fakeVolume, formatVolume, sparkline } from "@/lib/derived";
 import { ProbabilityBar } from "@/components/ProbabilityBar";
 import { OrderBook } from "@/components/OrderBook";
 import { TradePanel } from "@/components/TradePanel";
@@ -17,6 +17,7 @@ import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { Sparkline } from "@/components/Sparkline";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { Countdown } from "@/components/Countdown";
+import { AssetIcon } from "@/components/AssetIcon";
 
 export default function MarketPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -54,8 +55,8 @@ export default function MarketPage({ params }: { params: Promise<{ id: string }>
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="grid h-11 w-11 place-items-center rounded-xl bg-surface-2 text-xl">
-              {assetEmoji(market.underlying)}
+            <span className="grid h-11 w-11 place-items-center overflow-hidden rounded-xl bg-surface-2">
+              <AssetIcon underlying={market.underlying} size={26} />
             </span>
             <div>
               <div className="flex items-center gap-2 font-semibold">

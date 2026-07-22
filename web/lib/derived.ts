@@ -29,6 +29,33 @@ export function assetEmoji(underlying: string): string {
   return EMOJI[underlying] ?? "📊";
 }
 
+// Company/entity domains → real logos (via a favicon service). Assets without a
+// clean brand logo (commodities, rates, indices) fall back to the emoji.
+const ASSET_DOMAIN: Record<string, string> = {
+  AAPL: "apple.com",
+  NVDA: "nvidia.com",
+  TSLA: "tesla.com",
+  GOOGL: "google.com",
+  MSFT: "microsoft.com",
+  AMZN: "amazon.com",
+  META: "meta.com",
+  COIN: "coinbase.com",
+  SPY: "ssga.com",
+  SPACEX: "spacex.com",
+  SP500: "spglobal.com",
+  FED: "federalreserve.gov",
+};
+
+export function assetDomain(underlying: string): string | undefined {
+  return ASSET_DOMAIN[underlying];
+}
+
+/** Company-logo URL for an underlying, or undefined if it has no brand logo. */
+export function assetLogo(underlying: string): string | undefined {
+  const domain = ASSET_DOMAIN[underlying];
+  return domain ? `https://icons.duckduckgo.com/ip3/${domain}.ico` : undefined;
+}
+
 function hash(seed: string, salt: number): number {
   let h = 2166136261 ^ salt;
   for (let i = 0; i < seed.length; i++) h = Math.imul(h ^ seed.charCodeAt(i), 16777619);
