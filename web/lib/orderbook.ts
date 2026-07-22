@@ -122,6 +122,18 @@ export async function claimReward(input: { address: string; rewardId: string; si
   if (!res.ok) throw new Error(j.error ?? "claim failed");
   return j as { ok: boolean; txHash: string; amountWei: string };
 }
+export interface Holder {
+  address: string;
+  username?: string;
+  shares: string;
+}
+export interface MarketHoldersData {
+  yes: Holder[];
+  no: Holder[];
+  updatedAt: number;
+}
+export const getHolders = (id: string) => get<MarketHoldersData>(`/markets/${id}/holders`);
+
 export const getMarkets = () => get<Market[]>("/markets");
 export const getMarket = (id: string) => get<Market>(`/markets/${id}`);
 export const getBook = (tokenId: string) => get<OrderBookSnapshot>(`/book/${tokenId}`);

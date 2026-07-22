@@ -18,6 +18,7 @@ import type { Cadence } from "./catalog.js";
 import { getNews } from "./news.js";
 import { UserStore } from "./users.js";
 import { RewardStore } from "./rewards.js";
+import { HolderIndex } from "./holders.js";
 import { initDb, dbEnabled } from "./db.js";
 import { erc20Abi } from "@robinmarkets/shared";
 import { parseEther, verifyMessage, type Address } from "viem";
@@ -295,6 +296,13 @@ export async function buildServer(config: Config): Promise<Server> {
     return { ok: true, markets: markets.all().length };
   });
 
+  // Real top holders (biggest YES/NO position holders) for a market.
+  app.get<{ Params: { id: string } }>("/markets/:id/holders", async (req, reply) => {
+    const result = await holders.forMarket(req.params.id).catch(() => null);
+    if (!result) return reply.code(404).send({ error: "market not found" });
+    return result;
+  });
+
   app.get<{ Params: { tokenId: string } }>("/book/:tokenId", async (req, reply) => {
     if (!markets.knownToken(req.params.tokenId)) {
       return reply.code(404).send({ error: "unknown token" });
@@ -312,6 +320,8 @@ export async function buildServer(config: Config): Promise<Server> {
 
   const rewards = new RewardStore();
   await rewards.init();
+
+  const holders = new HolderIndex(config, markets, users);
 
   // ── Profiles (username claimed by wallet signature) ───────────────────────
   app.get<{ Params: { address: string } }>("/profile/:address", async (req, reply) => {

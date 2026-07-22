@@ -11,6 +11,7 @@ import {
   getEthPrice,
   getMarket,
   getMarkets,
+  getHolders,
   getNews,
   getProfile,
   getRewards,
@@ -77,6 +78,16 @@ export function useProfile(address: string | undefined) {
 
 export function useMarket(id: string) {
   return useQuery({ queryKey: ["market", id], queryFn: () => getMarket(id), enabled: !!id });
+}
+
+/** Real top holders (biggest YES/NO position holders) for a market. */
+export function useHolders(marketId: string | undefined) {
+  return useQuery({
+    queryKey: ["holders", marketId],
+    queryFn: () => getHolders(marketId!),
+    enabled: !!marketId,
+    refetchInterval: 60_000,
+  });
 }
 
 export function useBook(tokenId: string | undefined) {
