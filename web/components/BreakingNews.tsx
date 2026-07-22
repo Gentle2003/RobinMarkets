@@ -22,12 +22,12 @@ function marketForTicker(markets: Market[] | undefined, ticker: string): Market 
 
 function NewsCard({ n, market, index }: { n: NewsItem; market?: Market; index: number }) {
   return (
-    <div className="flex w-[260px] shrink-0 snap-start flex-col gap-2 rounded-xl bg-black/5 p-3 ring-1 ring-black/10 transition-colors hover:bg-black/10">
-      <div className="flex items-center gap-1.5 text-[11px] text-black/50">
-        <span className="grid h-4 w-4 place-items-center rounded bg-black/10 text-[10px] font-bold text-black/70">
+    <div className="flex w-[260px] shrink-0 snap-start flex-col gap-2 rounded-xl bg-black/20 p-3 ring-1 ring-lime/20 transition-colors hover:ring-lime/40">
+      <div className="flex items-center gap-1.5 text-[11px] text-white/50">
+        <span className="grid h-4 w-4 place-items-center rounded bg-lime/20 text-[10px] font-bold text-lime">
           {index + 1}
         </span>
-        <span className="font-semibold text-black/80">{n.ticker}</span>
+        <span className="font-semibold text-white/80">{n.ticker}</span>
         {n.publisher && <span className="truncate">· {n.publisher}</span>}
         {n.timestamp > 0 && <span className="ml-auto shrink-0">{timeAgo(n.timestamp)}</span>}
       </div>
@@ -37,7 +37,7 @@ function NewsCard({ n, market, index }: { n: NewsItem; market?: Market; index: n
         href={n.url}
         target="_blank"
         rel="noreferrer"
-        className="line-clamp-3 text-[13px] font-medium leading-snug text-black/90 hover:text-black hover:underline"
+        className="line-clamp-3 text-[13px] font-medium leading-snug text-white/90 hover:text-white hover:underline"
       >
         {n.title}
       </a>
@@ -46,7 +46,7 @@ function NewsCard({ n, market, index }: { n: NewsItem; market?: Market; index: n
       {market && (
         <Link
           href={`/market/${market.id}`}
-          className="mt-auto inline-flex w-fit items-center gap-1 rounded-full bg-black/10 px-2.5 py-1 text-[11px] font-semibold text-black/80 transition-colors hover:bg-black/20 hover:text-black"
+          className="mt-auto inline-flex w-fit items-center gap-1 rounded-full bg-lime/15 px-2.5 py-1 text-[11px] font-semibold text-lime ring-1 ring-lime/30 transition-colors hover:bg-lime/25"
         >
           Trade {market.underlying} →
         </Link>
@@ -64,21 +64,21 @@ export function BreakingNews() {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="rounded-2xl bg-gradient-to-r from-lime to-lime-bright p-4 text-black shadow-[0_8px_40px_-12px_rgba(195,245,60,0.4)]"
+      className="rounded-2xl border border-lime/30 bg-lime/10 p-4 shadow-[0_8px_40px_-12px_rgba(195,245,60,0.35)] backdrop-blur-2xl"
     >
       <div className="mb-3 flex items-center gap-2">
         <span className="relative flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-black/50" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-black" />
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-lime/60" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-lime" />
         </span>
-        <h3 className="text-sm font-bold">Breaking News</h3>
-        <span className="text-[11px] font-medium text-black/60">Stocks · RWA</span>
-        <span className="ml-auto hidden text-[11px] text-black/60 sm:inline">scroll for more →</span>
+        <h3 className="text-sm font-bold text-white">Breaking News</h3>
+        <span className="text-[11px] font-medium text-lime/80">Stocks · RWA</span>
+        <span className="ml-auto hidden text-[11px] text-white/50 sm:inline">scroll for more →</span>
       </div>
 
-      {isLoading && <p className="py-6 text-center text-xs text-black/50">Loading headlines…</p>}
+      {isLoading && <p className="py-6 text-center text-xs text-white/50">Loading headlines…</p>}
       {!isLoading && (!news || news.length === 0) && (
-        <p className="py-6 text-center text-xs text-black/50">No headlines right now.</p>
+        <p className="py-6 text-center text-xs text-white/50">No headlines right now.</p>
       )}
 
       {news && news.length > 0 && (
