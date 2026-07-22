@@ -16,6 +16,7 @@ import { ActivityFeed } from "@/components/ActivityFeed";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { Sparkline } from "@/components/Sparkline";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { Countdown } from "@/components/Countdown";
 
 export default function MarketPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -75,6 +76,8 @@ export default function MarketPage({ params }: { params: Promise<{ id: string }>
         </div>
 
         <h1 className="text-xl font-bold leading-snug">{market.question}</h1>
+
+        <Countdown target={market.resolveTime} resolved={market.status === "RESOLVED"} />
 
         <div className="flex items-end gap-4">
           <div className="shrink-0">
