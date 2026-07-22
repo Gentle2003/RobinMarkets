@@ -16,6 +16,7 @@ import {
   TIMEFRAME_LABEL,
   type Timeframe,
 } from "@/lib/derived";
+import { useFavorites } from "@/lib/favorites";
 
 const TIMEFRAMES: (Timeframe | "ALL")[] = ["ALL", "DAILY", "WEEKLY", "MONTHLY", "LONG"];
 
@@ -25,7 +26,9 @@ export default function HomePage() {
   const [subCat, setSubCat] = useState<string>("All");
   const [timeframe, setTimeframe] = useState<Timeframe | "ALL">("ALL");
   const [showResolved, setShowResolved] = useState(false);
+  const [showWatchlist, setShowWatchlist] = useState(false);
   const [query, setQuery] = useState("");
+  const { favorites } = useFavorites();
 
   const subCats = sector === "STOCKS" || sector === "RWA" ? SUBCATEGORIES[sector] : [];
 
@@ -34,6 +37,7 @@ export default function HomePage() {
     const list = (markets ?? []).filter((m) => {
       const resolved = m.status === "RESOLVED";
       if (showResolved !== resolved) return false;
+      if (showWatchlist && !favorites.has(m.id)) return false;
       if (!(sector === "ALL" || m.sector === sector)) return false;
       if (!(subCat === "All" || subCategory(m.underlying) === subCat)) return false;
       if (timeframe !== "ALL" && !resolved && timeframeOf(m.closeTime) !== timeframe) return false;
@@ -45,7 +49,7 @@ export default function HomePage() {
     return list.sort((a, b) =>
       showResolved ? b.closeTime - a.closeTime : a.closeTime - b.closeTime
     );
-  }, [markets, sector, subCat, query, timeframe, showResolved]);
+  }, [markets, sector, subCat, query, timeframe, showResolved, showWatchlist, favorites]);
 
   const resolvedCount = useMemo(
     () => (markets ?? []).filter((m) => m.status === "RESOLVED").length,
@@ -96,6 +100,16 @@ export default function HomePage() {
           ))}
           <span className="mx-1 h-4 w-px bg-border" />
           <button
+            onClick={() => setShowWatchlist((v) => !v)}
+            className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+              showWatchlist
+                ? "bg-lime/15 text-lime ring-1 ring-lime/40"
+                : "bg-surface-2 text-muted hover:text-white"
+            }`}
+          >
+            ★ Watchlist{favorites.size > 0 ? ` (${favorites.size})` : ""}
+          </button>
+          <button
             onClick={() => setShowResolved((v) => !v)}
             className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
               showResolved
@@ -137,7 +151,9 @@ export default function HomePage() {
           )}
           {!isLoading && !isError && filtered.length === 0 && (
             <div className="card p-8 text-center text-sm text-muted">
-              No markets match your filters.
+              {showWatchlist && favorites.size === 0
+                ? "Your watchlist is empty — tap the ★ on any market to add it."
+                : "No markets match your filters."}
             </div>
           )}
 

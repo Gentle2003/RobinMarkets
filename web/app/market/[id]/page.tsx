@@ -15,6 +15,7 @@ import { MarketTabs } from "@/components/market/MarketTabs";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { Sparkline } from "@/components/Sparkline";
+import { FavoriteButton } from "@/components/FavoriteButton";
 
 export default function MarketPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -65,9 +66,12 @@ export default function MarketPage({ params }: { params: Promise<{ id: string }>
               </div>
             </div>
           </div>
-          <span className={`text-sm font-semibold ${up ? "text-yes" : "text-no"}`}>
-            {up ? "▲" : "▼"} {Math.abs(change).toFixed(1)}%
-          </span>
+          <div className="flex items-center gap-3">
+            <span className={`text-sm font-semibold ${up ? "text-yes" : "text-no"}`}>
+              {up ? "▲" : "▼"} {Math.abs(change).toFixed(1)}%
+            </span>
+            <FavoriteButton marketId={market.id} size={22} className="h-9 w-9 hover:bg-surface-2" />
+          </div>
         </div>
 
         <h1 className="text-xl font-bold leading-snug">{market.question}</h1>

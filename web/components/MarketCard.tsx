@@ -10,6 +10,7 @@ import { priceToPct, sectorLabel, timeUntil } from "@/lib/format";
 import { assetEmoji, fakeChange, fakeVolume, formatVolume, sparkline, subCategory } from "@/lib/derived";
 import { AnimatedNumber } from "./AnimatedNumber";
 import { Sparkline } from "./Sparkline";
+import { FavoriteButton } from "./FavoriteButton";
 
 export function MarketCard({ market }: { market: Market }) {
   const { data: book } = useBook(market.yesPositionId);
@@ -49,7 +50,10 @@ export function MarketCard({ market }: { market: Market }) {
               </div>
             </div>
           </div>
-          <span className="pill bg-surface-2 text-muted">{timeUntil(market.closeTime)}</span>
+          <div className="flex items-center gap-1.5">
+            <span className="pill bg-surface-2 text-muted">{timeUntil(market.closeTime)}</span>
+            <FavoriteButton marketId={market.id} size={16} className="h-7 w-7 hover:bg-surface-2" />
+          </div>
         </div>
 
         <p className="line-clamp-2 min-h-[2.5rem] text-[15px] font-medium leading-snug text-white/90">
