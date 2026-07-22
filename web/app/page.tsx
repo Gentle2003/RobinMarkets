@@ -72,6 +72,8 @@ export default function HomePage() {
 
       <Ticker />
 
+      <BreakingNews />
+
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <SectorTabs value={sector} onChange={pickSector} />
@@ -122,49 +124,41 @@ export default function HomePage() {
         )}
       </div>
 
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-        <div className="flex flex-1 flex-col gap-6">
-          {isLoading && <SkeletonGrid />}
-          {isError && (
-            <div className="card p-6 text-sm text-muted">
-              Couldn&apos;t reach the order book service. Is it running on{" "}
-              <code className="text-white">:4000</code>?
-            </div>
-          )}
-          {!isLoading && !isError && filtered.length === 0 && (
-            <div className="card p-8 text-center text-sm text-muted">
-              {view === "WATCHLIST" && favorites.size === 0
-                ? "Your watchlist is empty — tap the ★ on any market to add it."
-                : "No markets match your filters."}
-            </div>
-          )}
-
-          <motion.div
-            id="markets"
-            className="grid grid-cols-1 gap-4 scroll-mt-20 sm:grid-cols-2"
-            initial="hidden"
-            animate="show"
-            variants={{ show: { transition: { staggerChildren: 0.05 } } }}
-          >
-            {filtered.map((m) => (
-              <motion.div
-                key={m.id}
-                variants={{
-                  hidden: { opacity: 0, y: 16 },
-                  show: { opacity: 1, y: 0, transition: { duration: 0.35 } },
-                }}
-              >
-                <MarketCard market={m} />
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-
-        <div className="lg:w-[330px] lg:shrink-0">
-          <div className="lg:sticky lg:top-6">
-            <BreakingNews />
+      <div className="flex flex-col gap-6">
+        {isLoading && <SkeletonGrid />}
+        {isError && (
+          <div className="card p-6 text-sm text-muted">
+            Couldn&apos;t reach the order book service. Is it running on{" "}
+            <code className="text-white">:4000</code>?
           </div>
-        </div>
+        )}
+        {!isLoading && !isError && filtered.length === 0 && (
+          <div className="card p-8 text-center text-sm text-muted">
+            {view === "WATCHLIST" && favorites.size === 0
+              ? "Your watchlist is empty — tap the ★ on any market to add it."
+              : "No markets match your filters."}
+          </div>
+        )}
+
+        <motion.div
+          id="markets"
+          className="grid grid-cols-1 gap-4 scroll-mt-20 sm:grid-cols-2 lg:grid-cols-3"
+          initial="hidden"
+          animate="show"
+          variants={{ show: { transition: { staggerChildren: 0.05 } } }}
+        >
+          {filtered.map((m) => (
+            <motion.div
+              key={m.id}
+              variants={{
+                hidden: { opacity: 0, y: 16 },
+                show: { opacity: 1, y: 0, transition: { duration: 0.35 } },
+              }}
+            >
+              <MarketCard market={m} />
+            </motion.div>
+          ))}
+        </motion.div>
       </div>
 
       <section id="activity" className="flex scroll-mt-20 flex-col gap-3">
