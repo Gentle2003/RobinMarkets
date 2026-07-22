@@ -22,8 +22,8 @@ function marketForTicker(markets: Market[] | undefined, ticker: string): Market 
 
 function NewsCard({ n, market, index }: { n: NewsItem; market?: Market; index: number }) {
   return (
-    <div className="flex w-[260px] shrink-0 snap-start flex-col gap-2 rounded-xl bg-black p-3 ring-1 ring-white/10 transition-colors hover:ring-lime/50">
-      <div className="flex items-center gap-1.5 text-[11px] text-white/50">
+    <div className="flex w-[260px] shrink-0 snap-start flex-col gap-2 rounded-xl border border-border bg-surface-2/60 p-3 transition-colors hover:border-lime-dim">
+      <div className="flex items-center gap-1.5 text-[11px] text-muted">
         <span className="grid h-4 w-4 place-items-center rounded bg-lime/20 text-[10px] font-bold text-lime">
           {index + 1}
         </span>
@@ -64,21 +64,21 @@ export function BreakingNews() {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="rounded-2xl bg-lime p-4 shadow-[0_8px_40px_-12px_rgba(195,245,60,0.4)]"
+      className="card border-lime/25 p-4 shadow-[0_8px_40px_-16px_rgba(195,245,60,0.25)]"
     >
       <div className="mb-3 flex items-center gap-2">
         <span className="relative flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-black/50" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-black" />
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-lime/60" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-lime" />
         </span>
-        <h3 className="text-sm font-bold text-black">Breaking News</h3>
-        <span className="text-[11px] font-medium text-black/60">Stocks · RWA</span>
-        <span className="ml-auto hidden text-[11px] text-black/60 sm:inline">scroll for more →</span>
+        <h3 className="text-sm font-bold text-lime">Breaking News</h3>
+        <span className="text-[11px] font-medium text-muted">Stocks · RWA</span>
+        <span className="ml-auto hidden text-[11px] text-muted sm:inline">scroll for more →</span>
       </div>
 
-      {isLoading && <p className="py-6 text-center text-xs text-black/50">Loading headlines…</p>}
+      {isLoading && <p className="py-6 text-center text-xs text-muted">Loading headlines…</p>}
       {!isLoading && (!news || news.length === 0) && (
-        <p className="py-6 text-center text-xs text-black/50">No headlines right now.</p>
+        <p className="py-6 text-center text-xs text-muted">No headlines right now.</p>
       )}
 
       {news && news.length > 0 && (
