@@ -65,6 +65,19 @@ export async function initDb(): Promise<boolean> {
         ts        bigint NOT NULL
       )`;
     await client`CREATE INDEX IF NOT EXISTS comments_market_idx ON comments (market_id, ts DESC)`;
+    await client`
+      CREATE TABLE IF NOT EXISTS rewards (
+        id           text PRIMARY KEY,
+        address      text NOT NULL,
+        username     text,
+        amount_wei   text NOT NULL,
+        note         text,
+        status       text NOT NULL,
+        allocated_at bigint NOT NULL,
+        claimed_at   bigint,
+        tx_hash      text
+      )`;
+    await client`CREATE INDEX IF NOT EXISTS rewards_address_idx ON rewards (address)`;
     sql = client;
     console.log("[db] connected — persistence enabled");
     return true;

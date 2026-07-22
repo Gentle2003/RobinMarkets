@@ -88,6 +88,12 @@ export class UserStore {
     return this.users.get(address.toLowerCase());
   }
 
+  /** Look up a trader by their claimed username (case-insensitive). */
+  getByUsername(username: string): UserRecord | undefined {
+    const lc = username.trim().toLowerCase();
+    return [...this.users.values()].find((u) => u.username?.toLowerCase() === lc);
+  }
+
   all(): UserRecord[] {
     return [...this.users.values()].sort((a, b) => b.lastSeen - a.lastSeen);
   }

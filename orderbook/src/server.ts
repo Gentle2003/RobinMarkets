@@ -17,6 +17,7 @@ import { createMarkets } from "./marketcreator.js";
 import type { Cadence } from "./catalog.js";
 import { getNews } from "./news.js";
 import { UserStore } from "./users.js";
+import { RewardStore } from "./rewards.js";
 import { initDb, dbEnabled } from "./db.js";
 import { erc20Abi } from "@robinmarkets/shared";
 import { parseEther, verifyMessage, type Address } from "viem";
@@ -142,29 +143,91 @@ export async function buildServer(config: Config): Promise<Server> {
     return { users: enriched, count: enriched.length };
   });
 
-  // Admin: airdrop native testnet ETH to a wallet.
-  app.post<{ Body: { to?: string; amountEth?: string } }>("/admin/airdrop", async (req, reply) => {
-    if (!requireAdmin(req)) return reply.code(401).send({ error: "unauthorized" });
-    if (!config.walletClient || !config.operator) {
-      return reply.code(400).send({ error: "no operator wallet" });
+  // Admin: allocate a CLAIMABLE airdrop to a wallet (by address or username).
+  // The ETH is not sent now — the recipient claims it from their dashboard.
+  app.post<{ Body: { to?: string; username?: string; amountEth?: string; note?: string } }>(
+    "/admin/airdrop",
+    async (req, reply) => {
+      if (!requireAdmin(req)) return reply.code(401).send({ error: "unauthorized" });
+      const { to, username, amountEth, note } = req.body ?? {};
+
+      // Resolve the recipient: explicit address wins, else look up the username.
+      let address = to;
+      let uname = username?.trim();
+      if (!address && uname) {
+        const u = users.getByUsername(uname);
+        if (!u) return reply.code(404).send({ error: `no user with username "${uname}"` });
+        address = u.address;
+        uname = u.username;
+      }
+      if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
+        return reply.code(400).send({ error: "valid 'to' address or known 'username' required" });
+      }
+      if (!uname) uname = users.get(address)?.username;
+
+      const amt = Number(amountEth);
+      if (!(amt > 0)) return reply.code(400).send({ error: "amountEth must be > 0" });
+
+      const reward = rewards.allocate(address, parseEther(String(amt)).toString(), uname, note?.trim() || undefined);
+      hub.broadcast({ type: "reward", reward });
+      return { ok: true, reward };
     }
-    const { to, amountEth } = req.body ?? {};
-    if (!to || !/^0x[a-fA-F0-9]{40}$/.test(to)) return reply.code(400).send({ error: "valid 'to' required" });
-    const amt = Number(amountEth);
-    if (!(amt > 0) || amt > 0.05) return reply.code(400).send({ error: "amountEth must be >0 and ≤0.05" });
-    try {
-      const hash = await config.walletClient.sendTransaction({
-        account: config.operator,
-        chain: config.chain,
-        to: to as Address,
-        value: parseEther(String(amt)),
-      });
-      await config.publicClient.waitForTransactionReceipt({ hash });
-      return { ok: true, to, amountEth: amt, txHash: hash };
-    } catch (e) {
-      return reply.code(500).send({ error: (e as Error).message.split("\n")[0] });
-    }
+  );
+
+  // A wallet's rewards (claimable + claimed history) + total still claimable.
+  app.get<{ Params: { address: string } }>("/rewards/:address", async (req, reply) => {
+    const { address } = req.params;
+    if (!/^0x[a-fA-F0-9]{40}$/.test(address)) return reply.code(400).send({ error: "invalid address" });
+    const list = rewards.forAddress(address);
+    return {
+      rewards: list,
+      claimableWei: rewards.claimableWei(address).toString(),
+      count: list.length,
+    };
   });
+
+  // Claim a reward: verify the wallet's signature, then the operator sends the ETH.
+  app.post<{ Body: { address?: string; rewardId?: string; signature?: string } }>(
+    "/rewards/claim",
+    async (req, reply) => {
+      const { address, rewardId, signature } = req.body ?? {};
+      if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
+        return reply.code(400).send({ error: "valid address required" });
+      }
+      if (!rewardId) return reply.code(400).send({ error: "rewardId required" });
+      if (!signature) return reply.code(400).send({ error: "signature required" });
+      if (!config.walletClient || !config.operator) {
+        return reply.code(400).send({ error: "operator wallet not configured" });
+      }
+
+      const ok = await verifyMessage({
+        address: address as Address,
+        message: `Claim RobinMarkets reward ${rewardId}`,
+        signature: signature as `0x${string}`,
+      }).catch(() => false);
+      if (!ok) return reply.code(401).send({ error: "bad signature" });
+
+      // Reserve the reward (rejects unknown / already-claimed / wrong-owner / in-flight).
+      const reward = rewards.beginClaim(rewardId, address);
+      if (!reward) return reply.code(409).send({ error: "reward not claimable" });
+
+      try {
+        const hash = await config.walletClient.sendTransaction({
+          account: config.operator,
+          chain: config.chain,
+          to: address as Address,
+          value: BigInt(reward.amountWei),
+        });
+        await config.publicClient.waitForTransactionReceipt({ hash });
+        rewards.finishClaim(rewardId, hash);
+        hub.broadcast({ type: "reward", reward: rewards.get(rewardId) });
+        return { ok: true, txHash: hash, amountWei: reward.amountWei };
+      } catch (e) {
+        rewards.abortClaim(rewardId); // let them retry
+        return reply.code(500).send({ error: (e as Error).message.split("\n")[0] });
+      }
+    }
+  );
 
   // Admin: force-resolve a market now on real data (for demo / manual override).
   app.post<{ Body: { marketId?: string } }>("/admin/resolve", async (req, reply) => {
@@ -217,6 +280,9 @@ export async function buildServer(config: Config): Promise<Server> {
 
   const users = new UserStore();
   await users.init();
+
+  const rewards = new RewardStore();
+  await rewards.init();
 
   // ── Profiles (username claimed by wallet signature) ───────────────────────
   app.get<{ Params: { address: string } }>("/profile/:address", async (req, reply) => {
