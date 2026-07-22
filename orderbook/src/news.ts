@@ -15,6 +15,32 @@ export interface NewsItem {
 // Equity/ETF tickers carry rich, frequent news; these map cleanly to our markets.
 const NEWS_TICKERS = ["AAPL", "NVDA", "TSLA", "MSFT", "META", "AMZN", "GOOGL", "COIN", "SPY"];
 
+/**
+ * Yahoo's per-ticker search returns general market news, so a story about Meta can
+ * surface under the NVDA query. Re-tag each headline by what it's actually about,
+ * scanning the title for the strongest company signal. First match wins; if nothing
+ * matches we keep the ticker the headline was fetched under.
+ */
+const RETAG_RULES: Array<{ ticker: string; re: RegExp }> = [
+  { ticker: "TSLA", re: /\btesla\b|\bcybertruck\b|elon musk|\bmusk\b/i },
+  { ticker: "META", re: /\bmeta\b|facebook|instagram|zuckerberg|whatsapp|\bthreads\b/i },
+  { ticker: "NVDA", re: /\bnvidia\b|jensen huang/i },
+  { ticker: "AAPL", re: /\bapple\b|iphone|ipad|\bmac\b|macbook|tim cook/i },
+  { ticker: "MSFT", re: /microsoft|\bazure\b|satya nadella|copilot|\bxbox\b/i },
+  { ticker: "GOOGL", re: /\bgoogle\b|alphabet|android|\bgemini\b|sundar pichai|youtube/i },
+  { ticker: "AMZN", re: /\bamazon\b|\baws\b|jeff bezos|andy jassy/i },
+  { ticker: "COIN", re: /coinbase|brian armstrong/i },
+  { ticker: "SPACEX", re: /\bspacex\b|starship|starlink/i },
+  { ticker: "SPY", re: /s&p ?500|\bspdr\b/i },
+];
+
+function retagTicker(title: string, fallback: string): string {
+  for (const { ticker, re } of RETAG_RULES) {
+    if (re.test(title)) return ticker;
+  }
+  return fallback;
+}
+
 let cache: { items: NewsItem[]; ts: number } = { items: [], ts: 0 };
 
 async function fetchTickerNews(ticker: string): Promise<NewsItem[]> {
@@ -31,7 +57,7 @@ async function fetchTickerNews(ticker: string): Promise<NewsItem[]> {
       .filter((n) => n.title && n.link)
       .map((n) => ({
         id: n.uuid ?? `${ticker}-${n.link}`,
-        ticker,
+        ticker: retagTicker(n.title!, ticker),
         title: n.title!,
         publisher: n.publisher ?? "",
         url: n.link!,

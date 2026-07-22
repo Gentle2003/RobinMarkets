@@ -4,7 +4,6 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import type { Market, NewsItem } from "@robinmarkets/shared";
 import { useMarkets, useNews } from "@/lib/hooks";
-import { assetEmoji } from "@/lib/derived";
 
 function timeAgo(ts: number): string {
   if (!ts) return "";
@@ -21,32 +20,35 @@ function marketForTicker(markets: Market[] | undefined, ticker: string): Market 
     .sort((a, b) => a.closeTime - b.closeTime)[0];
 }
 
-function Item({ n, market }: { n: NewsItem; market?: Market }) {
-  const body = (
-    <div className="group flex gap-2.5 py-2.5">
-      <span className="mt-0.5 text-base">{assetEmoji(n.ticker)}</span>
-      <div className="min-w-0">
-        <p className="line-clamp-2 text-[13px] font-medium leading-snug text-black/90 group-hover:text-black">
-          {n.title}
-        </p>
-        <div className="mt-1 flex items-center gap-1.5 text-[11px] text-black/50">
-          <span className="font-semibold text-black/70">{n.ticker}</span>
-          {n.publisher && <span>· {n.publisher}</span>}
-          {n.timestamp > 0 && <span>· {timeAgo(n.timestamp)}</span>}
-          {market && <span className="ml-auto font-semibold text-black/80">Trade →</span>}
+function Item({ n, market, index }: { n: NewsItem; market?: Market; index: number }) {
+  return (
+    <div className="border-b border-black/10 last:border-0">
+      {/* Headline opens the actual news article. */}
+      <a href={n.url} target="_blank" rel="noreferrer" className="group flex gap-2.5 pt-2.5">
+        <span className="mt-0.5 w-5 shrink-0 text-center text-[13px] font-bold tabular-nums text-black/40">
+          {index + 1}
+        </span>
+        <div className="min-w-0">
+          <p className="line-clamp-2 text-[13px] font-medium leading-snug text-black/90 group-hover:text-black group-hover:underline">
+            {n.title}
+          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-black/50">
+            <span className="font-semibold text-black/70">{n.ticker}</span>
+            {n.publisher && <span>· {n.publisher}</span>}
+            {n.timestamp > 0 && <span>· {timeAgo(n.timestamp)}</span>}
+          </div>
         </div>
-      </div>
+      </a>
+      {/* Trade button jumps to the related market. */}
+      {market && (
+        <Link
+          href={`/market/${market.id}`}
+          className="mb-2.5 ml-[30px] mt-1.5 inline-flex items-center gap-1 rounded-full bg-black/10 px-2.5 py-1 text-[11px] font-semibold text-black/80 transition-colors hover:bg-black/20 hover:text-black"
+        >
+          Trade {market.underlying} →
+        </Link>
+      )}
     </div>
-  );
-  // Prefer linking to the related prediction; fall back to the source article.
-  return market ? (
-    <Link href={`/market/${market.id}`} className="block border-b border-black/10 last:border-0">
-      {body}
-    </Link>
-  ) : (
-    <a href={n.url} target="_blank" rel="noreferrer" className="block border-b border-black/10 last:border-0">
-      {body}
-    </a>
   );
 }
 
@@ -76,8 +78,8 @@ export function BreakingNews() {
         {!isLoading && (!news || news.length === 0) && (
           <p className="py-6 text-center text-xs text-black/50">No headlines right now.</p>
         )}
-        {(news ?? []).slice(0, 14).map((n) => (
-          <Item key={n.id} n={n} market={marketForTicker(markets, n.ticker)} />
+        {(news ?? []).slice(0, 14).map((n, i) => (
+          <Item key={n.id} n={n} market={marketForTicker(markets, n.ticker)} index={i} />
         ))}
       </div>
     </motion.aside>
