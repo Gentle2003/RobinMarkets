@@ -62,6 +62,8 @@ export interface AdminUser {
   volume: number;
   ethBalance: string;
   wethBalance: string;
+  openPositions: number;
+  closedPositions: number;
 }
 
 export async function getAdminUsers(secret: string) {

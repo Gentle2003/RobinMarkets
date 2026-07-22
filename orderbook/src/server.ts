@@ -1,7 +1,7 @@
 import Fastify, { type FastifyInstance } from "fastify";
 import cors from "@fastify/cors";
 import websocket from "@fastify/websocket";
-import { PRICE_SCALE, ctfExchangeAbi, type SignedOrder } from "@robinmarkets/shared";
+import { PRICE_SCALE, ctfExchangeAbi, conditionalTokensAbi, type SignedOrder } from "@robinmarkets/shared";
 import type { Config } from "./config.js";
 import { MarketsRegistry } from "./markets.js";
 import { OrderBook } from "./book.js";
@@ -120,23 +120,52 @@ export async function buildServer(config: Config): Promise<Server> {
     return !!secret && req.headers["x-admin-secret"] === secret;
   };
 
-  // Admin: list every trader with on-chain balances + volume.
+  // Admin: list every trader with on-chain balances, volume, and position counts.
   app.get("/admin/users", async (req, reply) => {
     if (!requireAdmin(req)) return reply.code(401).send({ error: "unauthorized" });
     const list = users.all();
+
+    // One flat token-id list (yes,no per market) + a resolved flag per market, so
+    // each user's open/closed positions come from a single balanceOfBatch call.
+    const mkts = markets.all();
+    const tokenIds = mkts.flatMap((m) => [BigInt(m.yesPositionId), BigInt(m.noPositionId)]);
+
     const enriched = await Promise.all(
       list.map(async (u) => {
         const addr = u.address as Address;
-        const [native, weth] = await Promise.all([
+        const [native, weth, balances] = await Promise.all([
           config.publicClient.getBalance({ address: addr }).catch(() => 0n),
           config.publicClient
             .readContract({ address: config.addresses.collateral, abi: erc20Abi, functionName: "balanceOf", args: [addr] })
             .catch(() => 0n),
+          tokenIds.length
+            ? config.publicClient
+                .readContract({
+                  address: config.addresses.conditionalTokens,
+                  abi: conditionalTokensAbi,
+                  functionName: "balanceOfBatch",
+                  args: [tokenIds.map(() => addr), tokenIds],
+                })
+                .catch(() => [] as readonly bigint[])
+            : ([] as readonly bigint[]),
         ]);
+
+        let open = 0;
+        let closed = 0;
+        const bal = balances as readonly bigint[];
+        for (let i = 0; i < mkts.length; i++) {
+          const held = (bal[2 * i] ?? 0n) > 0n || (bal[2 * i + 1] ?? 0n) > 0n;
+          if (!held) continue;
+          if (mkts[i].status === "RESOLVED") closed++;
+          else open++;
+        }
+
         return {
           ...u,
           ethBalance: (native as bigint).toString(),
           wethBalance: (weth as bigint).toString(),
+          openPositions: open,
+          closedPositions: closed,
         };
       })
     );
