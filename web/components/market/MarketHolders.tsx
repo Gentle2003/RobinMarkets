@@ -4,12 +4,7 @@ import { motion } from "framer-motion";
 import type { Market } from "@robinmarkets/shared";
 import { useHolders } from "@/lib/hooks";
 import type { Holder } from "@/lib/orderbook";
-import { shortHash } from "@/lib/format";
-
-function shares(wei: string): string {
-  const n = Number(BigInt(wei) / 10n ** 15n) / 1000;
-  return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : n.toFixed(n < 10 ? 1 : 0);
-}
+import { formatShares, shortHash } from "@/lib/format";
 
 function Column({ title, side, holders }: { title: string; side: "YES" | "NO"; holders: Holder[] }) {
   const yes = side === "YES";
@@ -41,7 +36,7 @@ function Column({ title, side, holders }: { title: string; side: "YES" | "NO"; h
                 </span>
               </div>
               <span className={`shrink-0 tabular text-xs font-semibold ${yes ? "text-yes" : "text-no"}`}>
-                {shares(h.shares)}
+                {formatShares(h.shares)}
               </span>
             </motion.div>
           ))}

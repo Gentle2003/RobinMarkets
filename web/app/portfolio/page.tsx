@@ -17,7 +17,7 @@ import { conditionalTokensAbi, erc20Abi, type Market } from "@robinmarkets/share
 import { useQueryClient } from "@tanstack/react-query";
 import { useMarkets, useOrderbookConfig, useRewards, useUserStats } from "@/lib/hooks";
 import { claimReward, type Reward } from "@/lib/orderbook";
-import { fmtEth, sectorLabel, shortHash } from "@/lib/format";
+import { fmtEth, formatShares, sectorLabel, shortHash } from "@/lib/format";
 import { formatVolume } from "@/lib/derived";
 import { AssetIcon } from "@/components/AssetIcon";
 
@@ -358,9 +358,9 @@ function PositionRow({
           <div className="text-right">
             <div className="text-[11px] uppercase tracking-wide text-muted">Yes / No</div>
             <div className="tabular text-sm">
-              <span className="font-semibold text-yes">{fmtEth(yes, 1)}</span>
+              <span className="font-semibold text-yes">{formatShares(yes)}</span>
               <span className="text-muted"> / </span>
-              <span className="font-semibold text-no">{fmtEth(no, 1)}</span>
+              <span className="font-semibold text-no">{formatShares(no)}</span>
             </div>
           </div>
           {redeemable ? (

@@ -25,6 +25,21 @@ export function fmtShares(wei: bigint | string): string {
   return Number(formatUnits(w, 18)).toLocaleString(undefined, { maximumFractionDigits: 2 });
 }
 
+/**
+ * Share amount with magnitude-aware precision, so a tiny position reads as
+ * "0.0011" rather than "0.0", while large ones stay compact (1.5k / 2.3M).
+ */
+export function formatShares(wei: bigint | string): string {
+  const w = typeof wei === "string" ? BigInt(wei) : wei;
+  const n = Number(formatUnits(w, 18));
+  if (n === 0) return "0";
+  if (n < 0.001) return "<0.001";
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
+  const s = n >= 1 ? n.toFixed(2) : n.toPrecision(2);
+  return s.includes(".") ? s.replace(/\.?0+$/, "") : s;
+}
+
 export function shortHash(h: string): string {
   return `${h.slice(0, 6)}…${h.slice(-4)}`;
 }
