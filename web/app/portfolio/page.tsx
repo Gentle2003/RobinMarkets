@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { formatEther } from "viem";
 import {
@@ -337,41 +338,48 @@ function PositionRow({
   }
 
   return (
-    <motion.div
-      custom={index}
-      variants={fade}
-      initial="hidden"
-      animate="show"
-      className="card glow-hover flex items-center justify-between gap-4 p-4"
-    >
-      <div className="flex min-w-0 items-center gap-3">
-        <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-surface-2">
-          <AssetIcon underlying={market.underlying} size={22} />
-        </span>
-        <div className="min-w-0">
-          <div className="truncate text-sm font-semibold">{market.question}</div>
-          <div className="text-xs text-muted">
-            {market.underlying} · {sectorLabel(market.sector)}
+    <motion.div custom={index} variants={fade} initial="hidden" animate="show">
+      <Link
+        href={`/market/${market.id}`}
+        className="card glow-hover flex items-center justify-between gap-4 p-4"
+      >
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-surface-2">
+            <AssetIcon underlying={market.underlying} size={22} />
+          </span>
+          <div className="min-w-0">
+            <div className="truncate text-sm font-semibold">{market.question}</div>
+            <div className="text-xs text-muted">
+              {market.underlying} · {sectorLabel(market.sector)}
+            </div>
           </div>
         </div>
-      </div>
-      <div className="flex shrink-0 items-center gap-4">
-        <div className="text-right">
-          <div className="text-[11px] uppercase tracking-wide text-muted">Yes / No</div>
-          <div className="tabular text-sm">
-            <span className="font-semibold text-yes">{fmtEth(yes, 1)}</span>
-            <span className="text-muted"> / </span>
-            <span className="font-semibold text-no">{fmtEth(no, 1)}</span>
+        <div className="flex shrink-0 items-center gap-4">
+          <div className="text-right">
+            <div className="text-[11px] uppercase tracking-wide text-muted">Yes / No</div>
+            <div className="tabular text-sm">
+              <span className="font-semibold text-yes">{fmtEth(yes, 1)}</span>
+              <span className="text-muted"> / </span>
+              <span className="font-semibold text-no">{fmtEth(no, 1)}</span>
+            </div>
           </div>
+          {redeemable ? (
+            <button
+              className="btn-lime"
+              disabled={isPending}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                redeem();
+              }}
+            >
+              {isPending ? "Redeeming…" : "Redeem"}
+            </button>
+          ) : (
+            <span className="pill bg-lime/10 text-lime">Open</span>
+          )}
         </div>
-        {redeemable ? (
-          <button className="btn-lime" disabled={isPending} onClick={redeem}>
-            {isPending ? "Redeeming…" : "Redeem"}
-          </button>
-        ) : (
-          <span className="pill bg-lime/10 text-lime">Open</span>
-        )}
-      </div>
+      </Link>
     </motion.div>
   );
 }
