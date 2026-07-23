@@ -2,23 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useAccount } from "wagmi";
 import { LogoBadge } from "./Logo";
-import { useProfile } from "@/lib/hooks";
 import { HowItWorksButton } from "./HowItWorks";
 import { TokenCa } from "./TokenCa";
-
-function UsernameBadge() {
-  const { address } = useAccount();
-  const { data: username } = useProfile(address);
-  if (!username) return null;
-  return (
-    <span className="hidden rounded-lg bg-lime/10 px-2.5 py-1.5 text-sm font-semibold text-lime sm:inline">
-      @{username}
-    </span>
-  );
-}
+import { WalletControls } from "./WalletControls";
 
 export function Header() {
   const pathname = usePathname();
@@ -59,8 +46,7 @@ export function Header() {
           </nav>
         </div>
         <div className="flex items-center gap-2">
-          <UsernameBadge />
-          <ConnectButton showBalance={false} accountStatus="address" chainStatus="icon" />
+          <WalletControls />
         </div>
       </div>
     </header>
