@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
-// Set NEXT_PUBLIC_TOKEN_CA once the $RMS token launches to reveal a copyable address.
-const TOKEN_CA = process.env.NEXT_PUBLIC_TOKEN_CA ?? "";
+// The $RMS token contract. NEXT_PUBLIC_TOKEN_CA can override; otherwise the
+// launched address below is used (empty string would show the "soon" state).
+const TOKEN_CA = process.env.NEXT_PUBLIC_TOKEN_CA ?? "0x24C0C2a8070AEA335E56507CD898a36aCc0Ac706";
 
 /** Token contract-address pill shown directly beneath the RobinMarkets wordmark. */
 export function TokenCa() {
