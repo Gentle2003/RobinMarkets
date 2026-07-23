@@ -62,7 +62,7 @@ export function Footer() {
             Chain.
           </p>
           <div className="flex gap-2">
-            <Social href="https://x.com" label="X / Twitter">
+            <Social href="https://x.com/robinmarketapp" label="X / Twitter">
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
                 <path d="M18.9 2H22l-7.4 8.5L23 22h-6.8l-5.3-6.9L4.8 22H1.7l7.9-9L1 2h7l4.8 6.3L18.9 2Zm-2.4 18h1.9L7.6 4H5.6l10.9 16Z" />
               </svg>
