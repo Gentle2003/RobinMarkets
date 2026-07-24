@@ -11,6 +11,12 @@ export const metadata: Metadata = {
   title: "RobinMarkets — Stocks & RWA prediction markets",
   description:
     "Trade binary predictions on tokenized Stocks and Real-World Assets, settled on Robinhood Chain.",
+  // Site-ownership verification tags (rendered into <head>).
+  verification: {
+    other: {
+      "virtual-protocol-site-verification": "2cac6861665346d4b6b22f5720eaa275",
+    },
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
