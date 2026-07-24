@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
-// Set NEXT_PUBLIC_TOKEN_CA once the $RMS token launches to reveal a copyable
-// address; while empty, the pill shows the "CA · soon" state.
-const TOKEN_CA = process.env.NEXT_PUBLIC_TOKEN_CA ?? "";
+// $RMS ("RobinMarkets by Virtuals") on Robinhood Chain mainnet.
+// NEXT_PUBLIC_TOKEN_CA overrides; an empty value shows the "CA · soon" state.
+const TOKEN_CA = process.env.NEXT_PUBLIC_TOKEN_CA ?? "0xd0aB9022d637B43973fc7242Dc4B3A5FF3a76d14";
 
 /** Token contract-address pill shown directly beneath the RobinMarkets wordmark. */
 export function TokenCa() {
